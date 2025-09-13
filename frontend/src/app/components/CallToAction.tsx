@@ -5,7 +5,7 @@ import Link from "next/link";
 export const CallToAction = () => {
   return (
     <section className="py-16  ">
-      <div className="mx-auto max-w-5xl rounded-3xl border px-6 py-12 md:py-20 lg:py-32 backdrop-blur-lg bg-white/7 border border-white/10">
+      <div className="mx-auto max-w-5xl rounded-3xl px-6 py-12 md:py-20 lg:py-32 backdrop-blur-lg bg-white/7 border border-white/10">
         <div className="text-center">
           <h2 className="text-balance text-4xl font-semibold lg:text-5xl">
             <ShinyText
