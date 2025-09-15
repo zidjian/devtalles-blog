@@ -1,11 +1,11 @@
 "use client";
 import LiquidEther from "@/components/LiquidEther";
-import { HeroSection } from "../components/HeroSection";
-import Navbar from "../components/Navbar";
-import { ContentSection } from "../components/ContentSection";
-import FeaturesContent from "../components/FeaturesContent";
-import { CallToAction } from "../components/CallToAction";
-import FooterSection from "../components/Footer";
+import { HeroSection } from "./components/HeroSection";
+import Navbar from "./components/Navbar";
+import { ContentSection } from "./components/ContentSection";
+import FeaturesContent from "./components/FeaturesContent";
+import { CallToAction } from "./components/CallToAction";
+import FooterSection from "./components/Footer";
 
 export default function Landing() {
   return (

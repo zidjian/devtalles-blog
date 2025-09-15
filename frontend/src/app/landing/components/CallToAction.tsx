@@ -15,14 +15,14 @@ export const CallToAction = () => {
               className="custom-class"
             />
           </h2>
-          <p className="mt-4">
+          <div className="mt-4">
             <ShinyText
               text="Crea tu cuenta y comienza a crear tus proyectos."
               disabled={false}
               speed={3}
               className="custom-class"
             />
-          </p>
+          </div>
 
           <div className="mt-12 flex flex-wrap justify-center gap-4">
             <Button asChild size="lg">
