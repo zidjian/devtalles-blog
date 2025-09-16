@@ -1,0 +1,16 @@
+services:
+  devtalles-db:
+    container_name: devtalles-db
+    restart: always
+    image: postgres:16.2
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    ports:
+      - "5431:5432"
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=admin
+      - POSTGRES_DB=devtalles-blog
+
+volumes: 
+  pgdata:
