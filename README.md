@@ -22,6 +22,53 @@ Descripción
 - 
 - 
 
+## Instalación
+
+Clonar repositorio
+
+### backend
+1. Dirigirse a la carpeta backend
+```bash
+cd backend
+```
+2. Instalar dependencias
+
+```bash
+npm install
+```
+
+3. duplicar el archivo `.env.example` a `.env`
+
+```bash
+cp .env.example .env
+```
+
+4. Configurar las variables de entorno 
+
+```md
+# Variables de entorno develop
+PORT=5432
+DATABASE_URL=postgresql://postgres:admin@localhost:5431/devtalles-blog?schema=public
+```
+
+5. Levantar base de datos
+```bash
+docker compose up -d
+```
+6. Generar el cliente de Prisma
+```bash
+npx prisma generate
+```
+
+7. Ejecutar las migraciones
+```bash
+npx prisma migrate dev
+```
+
+8. Ejecutar la aplicacion
+```bash
+npm run dev
+```
 ## Acceso al proyecto
 
 [Demo](enlace)
