@@ -26,17 +26,9 @@ export class AuthController {
   }
 
   @Get('profile')
-  @Auth(ValidRoles.ADMIN)
+  @Auth()
   async getProfile(@Request() req) {
     return this.authService.findUserById(req.user.id);
   }
 
-  @Get('validate')
-  @Auth(ValidRoles.ADMIN)
-  async validate(@Request() req) {
-    return {
-      valid: true,
-      user: req.user,
-    };
-  }
 }
