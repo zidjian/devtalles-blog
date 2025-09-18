@@ -35,7 +35,9 @@ model Post {
   id        Int      @id @default(autoincrement())
   userId    Int
   title     String
+  slug      String   @unique
   content   String
+  image     String?
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
@@ -66,26 +68,28 @@ model Like {
   postId    Int
   createdAt DateTime @default(now())
 
-  user      User     @relation(fields: [userId], references: [id])
-  post      Post     @relation(fields: [postId], references: [id])
+  user User @relation(fields: [userId], references: [id])
+  post Post @relation(fields: [postId], references: [id])
+
+  @@unique([userId, postId])
 }
 
 model Category {
-  id          Int           @id @default(autoincrement())
-  name        String
-  description String?
-  isActive    Boolean       @default(true)
-  createdAt   DateTime      @default(now())
+  id        Int      @id @default(autoincrement())
+  name      String
+  slug      String   @unique
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
 
-  posts       PostCategory[]
+  posts PostCategory[]
 }
 
 model PostCategory {
   postId     Int
   categoryId Int
 
-  post       Post     @relation(fields: [postId], references: [id])
-  category   Category @relation(fields: [categoryId], references: [id])
+  post     Post     @relation(fields: [postId], references: [id])
+  category Category @relation(fields: [categoryId], references: [id])
 
   @@id([postId, categoryId])
 }
