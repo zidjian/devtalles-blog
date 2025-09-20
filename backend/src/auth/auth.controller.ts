@@ -172,4 +172,50 @@ export class AuthController {
   async refreshToken(@Request() req: AuthenticatedRequest) {
     return this.authService.refreshToken(req.user.id);
   }
+
+  @Get('validate')
+  @ApiOperation({
+    summary: 'Validate token',
+    description:
+      'Check if the current token is valid and get basic user information',
+  })
+  @ApiBearerAuth()
+  @ApiResponse({
+    status: 200,
+    description: 'Token is valid',
+    schema: {
+      example: {
+        valid: true,
+        user: {
+          id: 1,
+          username: 'johndoe',
+          email: 'john@example.com',
+          role: 'USER',
+        },
+      },
+    },
+  })
+  @ApiResponse({
+    status: 401,
+    description: 'Token is invalid or expired',
+    schema: {
+      example: {
+        statusCode: 401,
+        message: 'Unauthorized',
+        error: 'Unauthorized',
+      },
+    },
+  })
+  @Auth()
+  validateToken(@Request() req: AuthenticatedRequest) {
+    return {
+      valid: true,
+      user: {
+        id: req.user.id,
+        username: req.user.username,
+        email: req.user.email,
+        role: req.user.role,
+      },
+    };
+  }
 }
