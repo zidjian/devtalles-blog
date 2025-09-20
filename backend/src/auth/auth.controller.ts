@@ -134,4 +134,42 @@ export class AuthController {
   async getProfile(@Request() req: AuthenticatedRequest) {
     return this.authService.findUserById(req.user.id);
   }
+
+  @Post('refresh')
+  @ApiOperation({
+    summary: 'Refresh access token',
+    description: 'Generate a new access token using the current valid token',
+  })
+  @ApiBearerAuth()
+  @ApiResponse({
+    status: 200,
+    description: 'Token refreshed successfully',
+    type: AuthResponseDto,
+  })
+  @ApiResponse({
+    status: 401,
+    description: 'Unauthorized - Invalid or expired token',
+    schema: {
+      example: {
+        statusCode: 401,
+        message: 'Unauthorized',
+        error: 'Unauthorized',
+      },
+    },
+  })
+  @ApiResponse({
+    status: 404,
+    description: 'User not found',
+    schema: {
+      example: {
+        statusCode: 404,
+        message: 'User not found',
+        error: 'Not Found',
+      },
+    },
+  })
+  @Auth()
+  async refreshToken(@Request() req: AuthenticatedRequest) {
+    return this.authService.refreshToken(req.user.id);
+  }
 }
