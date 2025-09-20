@@ -34,8 +34,12 @@ export class AuthService {
       where: { email },
     });
 
-    if (user && (await bcrypt.compare(password, user.password))) {
-      const { password, ...result } = user;
+    if (
+      user &&
+      user.password &&
+      (await bcrypt.compare(password, user.password))
+    ) {
+      const { password: _, ...result } = user;
       return result;
     }
     return null;
@@ -48,7 +52,7 @@ export class AuthService {
       throw new UnauthorizedException('Invalid credentials');
     }
 
-    const payload : JwtPayload = {
+    const payload: JwtPayload = {
       email: user.email,
       sub: user.id,
       username: user.username,
@@ -96,7 +100,7 @@ export class AuthService {
       },
     });
 
-    const payload : JwtPayload= {
+    const payload: JwtPayload = {
       email: user.email,
       sub: user.id,
       username: user.username,
@@ -132,5 +136,39 @@ export class AuthService {
         updatedAt: true,
       },
     });
+  }
+
+  async refreshToken(userId: number): Promise<AuthResponse> {
+    // Buscar el usuario por ID
+    const user = await this.prisma.user.findUnique({
+      where: { id: userId },
+    });
+
+    if (!user) {
+      throw new UnauthorizedException('User not found');
+    }
+
+    // Crear nuevo payload con la información actualizada del usuario
+    const payload: JwtPayload = {
+      email: user.email,
+      sub: user.id,
+      username: user.username,
+      role: user.role,
+    };
+
+    // Generar nuevo token
+    const newToken = this.jwtService.sign(payload);
+
+    return {
+      access_token: newToken,
+      user: {
+        id: user.id,
+        username: user.username,
+        email: user.email,
+        firstName: user.firstName || '',
+        lastName: user.lastName || '',
+        role: user.role,
+      },
+    };
   }
 }
