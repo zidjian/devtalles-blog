@@ -5,16 +5,55 @@ import { CommentService } from '../comment/comment.service';
 import { CreatePostDto } from './dto/create-post.dto';
 import slugify from 'slugify';
 import { postInclude, postOrderBy } from './constants/postInclude.const';
+import { CloudinaryService } from '../cloudinary/cloudinary.service';
+import { UploadApiResponse } from 'cloudinary';
+import { FilterPostDto } from './dto/filter-post.dto';
+import { Prisma } from '@prisma/client';
+
 
 @Injectable()
 export class PostService {
     constructor(
         private readonly prisma: PrismaService,
-        private readonly commentService: CommentService
+        private readonly commentService: CommentService,
+        private readonly cloudinaryService: CloudinaryService
     ) {}
 
-    async createPost(createPostDto: CreatePostDto) {
-        const { userId, title, slug, content, categoryIds } = createPostDto;
+    private buildWhereFromFilters(f: FilterPostDto): Prisma.PostWhereInput {
+        const and: Prisma.PostWhereInput[] = [];
+
+        if(f.title?.trim()){
+            and.push({
+                title: {
+                    contains: f.title.trim(),
+                    mode: 'insensitive',
+                },
+            });
+        }
+
+        if(f.categoryId){
+            and.push({
+                categories: {
+                    some: {
+                        categoryId: {
+                            equals: f.categoryId,
+                        },
+                    },
+                },
+            });
+        }
+
+        return and.length ? { AND: and } : {};
+    }
+
+    async createPost(
+        userId: number, 
+        createPostDto: CreatePostDto,
+        file?: Express.Multer.File
+    ) {
+        const { title, slug, content, categoryIds } = createPostDto;
+
+        let result: UploadApiResponse;
 
         let postSlug = slug || slugify(title, {
             lower: true,
@@ -27,16 +66,25 @@ export class PostService {
             throw new BadRequestException('Post with this slug already exists');
         }
 
-        const user = await this.prisma.user.findUnique({ where: { id: userId }});
+        const [user, categoriesCount] = await Promise.all([
+            this.prisma.user.findUnique({ where: { id: userId }}),
+            this.prisma.category.count({ where: { id: { in: categoryIds }}}),
+        ]);
 
-        if (!user) {
+        if(!user){
             throw new NotFoundException('User not found');
         }
 
-        const categories = await this.prisma.category.findMany({ where: { id: { in: categoryIds }}});
-
-        if (categories.length !== categoryIds.length) {
+        if(categoriesCount !== categoryIds.length){
             throw new NotFoundException('Some categories not found');
+        }
+
+        if(file){
+            result = await this.cloudinaryService.uploadFile(file, 'post-images');
+
+            if(!result){
+                throw new BadRequestException('Failed to upload image');
+            }
         }
 
         // transaction
@@ -47,13 +95,14 @@ export class PostService {
                     slug: postSlug,
                     content,
                     userId,
+                    image: result?.secure_url,
                 },
             });
 
             await prisma.postCategory.createMany({
-                data: categories.map((category) => ({
+                data: categoryIds.map((categoryId) => ({
                     postId: post.id,
-                    categoryId: category.id,
+                    categoryId,
                 })),
             });
 
@@ -71,7 +120,6 @@ export class PostService {
                             select: {
                                 id: true,
                                 name: true,
-                                slug: true,
                             },
                         },
                     }
@@ -98,16 +146,22 @@ export class PostService {
             throw new NotFoundException(`Post with slug ${slug} not found`);
         }
 
+        const categories = post.categories.map((pc) => pc.category);
+
         const comments = await this.commentService.getCommentsByPostSlug(slug, { page: 1, limit: 5 });
 
         return {
             ...post,
             comments,
+            categories,
         };
     }
 
-    private async getPosts(where: any, paginationDto: PaginationDto) {
-        const { page = 1, limit = 10 } = paginationDto;
+    private async getPosts(
+        where: Prisma.PostWhereInput, 
+        filterPostDto: FilterPostDto
+    ) {
+        const { page = 1, limit = 10 } = filterPostDto;
 
         const [posts, total] = await this.prisma.$transaction([
             this.prisma.post.findMany({
@@ -120,22 +174,37 @@ export class PostService {
             this.prisma.post.count({ where }),
         ]);
 
+        const data = posts.map((post) => ({
+            ...post,
+            categories: post.categories.map((pc) => pc.category),
+        }));
+
         return {
-            data: posts,
+            data,
             meta: {
                 total,
                 totalPages: Math.ceil(total / limit),
                 currentPage: page,
+                limit,
             },
         };
     }
 
-    async  getAllPostsByUserId(userId: number, paginationDto: PaginationDto){
-        return this.getPosts({ userId }, paginationDto);
+    async getAllPostsByUserId(userId: number, filterPostDto: FilterPostDto){
+
+        const baseWhere: Prisma.PostWhereInput = { userId };
+        const extraWhere = filterPostDto ? this.buildWhereFromFilters(filterPostDto) : {};
+
+        const where = Object.keys(extraWhere).length
+            ? { AND: [baseWhere, extraWhere] }
+            : baseWhere;
+
+        return this.getPosts(where, filterPostDto);
     }
 
-    async getAllPosts(paginationDto: PaginationDto) {
-        return this.getPosts({}, paginationDto);
+    async getAllPosts(filterPostDto: FilterPostDto) {
+        const where = this.buildWhereFromFilters(filterPostDto);
+        return this.getPosts(where, filterPostDto);
     }
 
     async deletePost(id: number) {
@@ -145,7 +214,13 @@ export class PostService {
             throw new NotFoundException(`Post with id ${id} not found`);
         }
 
-        return this.prisma.post.delete({ where: { id } });
+        return this.prisma.$transaction(async (tx) => {
+            await tx.postCategory.deleteMany({ where: { postId: id } });
+            await tx.comment.deleteMany({ where: { postId: id } });
+            await tx.like.deleteMany({ where: { postId: id } });
+        
+            return tx.post.delete({ where: { id } });
+        });
     }
 
     async likePost(userId: number, postId: number) {

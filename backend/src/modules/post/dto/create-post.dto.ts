@@ -1,12 +1,8 @@
 import { ApiProperty } from "@nestjs/swagger";
-import { IsArray, IsNumber, IsOptional, IsString, Min } from "class-validator";
+import { ArrayUnique, IsArray, IsNumber, IsOptional, IsString, Min } from "class-validator";
 import { Type } from "class-transformer";
 
 export class CreatePostDto {
-    
-    @ApiProperty({ example: '1' })
-    @IsNumber()
-    userId: number;
     
     @ApiProperty({ example: 'Post Title' })
     @IsString()
@@ -23,6 +19,7 @@ export class CreatePostDto {
 
     @ApiProperty({ example: '[1, 2, 3]' })
     @IsArray()
+    @ArrayUnique()
     @Min(1, { each: true })
     @IsNumber({}, { each: true })
     @Type(() => Number)

@@ -5,12 +5,21 @@ import {
   MaxLength,
   IsNotEmpty,
 } from 'class-validator';
+import { ApiProperty } from '@nestjs/swagger';
 
 export class LoginDto {
+  @ApiProperty({
+    example: 'email@example.com',
+    description: 'Email',
+  })
   @IsEmail({}, { message: 'Must provide a valid email' })
   @IsNotEmpty({ message: 'Email is required' })
   email: string;
 
+  @ApiProperty({
+    example: 'password',
+    description: 'Password',
+  })
   @IsString({ message: 'Password must be a string' })
   @IsNotEmpty({ message: 'Password is required' })
   @MinLength(6, { message: 'Password must be at least 6 characters long' })
@@ -18,6 +27,10 @@ export class LoginDto {
 }
 
 export class RegisterDto {
+  @ApiProperty({
+    example: 'username',
+    description: 'Username',
+  })
   @IsString({ message: 'Username must be a string' })
   @IsNotEmpty({ message: 'Username is required' })
   @MinLength(3, {
@@ -28,20 +41,36 @@ export class RegisterDto {
   })
   username: string;
 
+  @ApiProperty({
+    example: 'email@example.com',
+    description: 'Email',
+  })
   @IsEmail({}, { message: 'Must provide a valid email' })
   @IsNotEmpty({ message: 'Email is required' })
   email: string;
 
+  @ApiProperty({
+    example: 'password',
+    description: 'Password',
+  })
   @IsString({ message: 'Password must be a string' })
   @IsNotEmpty({ message: 'Password is required' })
   @MinLength(6, { message: 'Password must be at least 6 characters long' })
   password: string;
 
+  @ApiProperty({
+    example: 'John',
+    description: 'First name',
+  })
   @IsString({ message: 'First name must be a string' })
   @IsNotEmpty({ message: 'First name is required' })
   @MaxLength(50, { message: 'First name cannot be longer than 50 characters' })
   firstName: string;
 
+  @ApiProperty({
+    example: 'Doe',
+    description: 'Last name',
+  })
   @IsString({ message: 'Last name must be a string' })
   @IsNotEmpty({ message: 'Last name is required' })
   @MaxLength(50, { message: 'Last name cannot be longer than 50 characters' })
