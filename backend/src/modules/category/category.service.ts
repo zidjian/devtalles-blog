@@ -11,11 +11,20 @@ export class CategoryService {
     async getAllCategories() {
         const categories = await this.prisma.category.findMany();
 
-        if (!categories) {
-            throw new NotFoundException('Categories not found');
-        }
-
         return categories;
+    }
+
+    async getAllCategoriesForSelect(){
+        const categories = await this.getAllCategories();
+
+        const formatedCategories = categories.map((category) => {
+            return {
+                value: category.id,
+                label: category.name,
+            };
+        });
+
+        return formatedCategories;
     }
 
     async getCategoryById(id: number) {

@@ -28,6 +28,11 @@ export class CategoryController {
     return this.categoryService.getAllCategories();
   }
 
+  @Get('select')
+  async getAllCategoriesForSelect() {
+    return this.categoryService.getAllCategoriesForSelect();
+  }
+
   @Get(':id')
   async getCategoryById(@Param('id') id: number) {
     return this.categoryService.getCategoryById(Number(id));
