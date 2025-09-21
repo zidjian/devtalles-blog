@@ -41,7 +41,7 @@ model Post {
   id          Int      @id @default(autoincrement())
   userId      Int
   title       String
-  description String
+  description String?
   slug        String   @unique
   content     String
   image       String?

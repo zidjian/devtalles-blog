@@ -5,6 +5,7 @@ import {
   Get,
   Param,
   Post,
+  Put,
   Query,
   UploadedFile,
   UseInterceptors,
@@ -12,6 +13,7 @@ import {
 import { PostService } from './post.service';
 import { PaginationDto } from 'src/common/dto/pagination.dto';
 import { CreatePostDto } from './dto/create-post.dto';
+import { UpdatePostDto } from './dto/update-post.dto';
 import { Auth } from 'src/auth/decorators/auth.decorator';
 import { GetUser } from 'src/auth/decorators/get-user.decorator';
 import { FileInterceptor } from '@nestjs/platform-express';
@@ -46,9 +48,26 @@ export class PostController {
     return this.postService.getAllPostsByUserId(Number(userId), filterPostDto);
   }
 
+  @Get('id/:id')
+  async getPostById(@Param('id') id: number) {
+    return this.postService.getPostById(Number(id));
+  }
+
   @Get(':slug')
   async getPostBySlug(@Param('slug') slug: string) {
     return this.postService.getPostBySlug(slug);
+  }
+
+  @Auth() // Todo manage roles
+  @Put(':id')
+  @UseInterceptors(FileInterceptor('file'))
+  async updatePost(
+    @Param('id') id: number,
+    @GetUser('id') userId: number,
+    @Body() updatePostDto: UpdatePostDto,
+    @UploadedFile() file?: Express.Multer.File,
+  ) {
+    return this.postService.updatePost(Number(id), userId, updatePostDto, file);
   }
 
   @Auth() // Todo manage roles
@@ -85,5 +104,14 @@ export class PostController {
       Number(userId),
       paginationDto,
     );
+  }
+
+  @Auth() // Todo manage roles
+  @Get('statistics')
+  async getStatistics(
+    @Query('startDate') startDate?: string,
+    @Query('endDate') endDate?: string,
+  ) {
+    return this.postService.getStatistics(startDate, endDate);
   }
 }
