@@ -10,11 +10,14 @@ import {
 import { CategoryService } from './category.service';
 import { CreateCategoryDto } from './dto/create-category.dto';
 import { UpdateCategoryDto } from './dto/update-category.dto';
+import { Auth } from 'src/auth/decorators/auth.decorator';
+import { ValidRoles } from 'src/auth/interfaces/valid-role';
 
 @Controller('category')
 export class CategoryController {
   constructor(private readonly categoryService: CategoryService) {}
 
+  @Auth(ValidRoles.ADMIN)
   @Post()
   async createCategory(@Body() createCategoryDto: CreateCategoryDto) {
     return this.categoryService.createCategory(createCategoryDto);
@@ -35,6 +38,7 @@ export class CategoryController {
     return this.categoryService.getCategoryBySlug(slug);
   }
 
+  @Auth(ValidRoles.ADMIN)
   @Patch(':id')
   async updateCategory(
     @Param('id') id: number,
@@ -43,6 +47,7 @@ export class CategoryController {
     return this.categoryService.updateCategory(Number(id), updateCategoryDto);
   }
 
+  @Auth(ValidRoles.ADMIN)
   @Delete(':id')
   async deleteCategory(@Param('id') id: number) {
     return this.categoryService.deleteCategory(Number(id));

@@ -6,31 +6,44 @@ import {
   Param,
   Post,
   Query,
+  UploadedFile,
+  UseInterceptors,
 } from '@nestjs/common';
 import { PostService } from './post.service';
 import { PaginationDto } from 'src/common/dto/pagination.dto';
 import { CreatePostDto } from './dto/create-post.dto';
+import { Auth } from 'src/auth/decorators/auth.decorator';
+import { GetUser } from 'src/auth/decorators/get-user.decorator';
+import { FileInterceptor } from '@nestjs/platform-express';
+import { FilterPostDto } from './dto/filter-post.dto';
 
 @Controller('post')
 export class PostController {
   constructor(private readonly postService: PostService) {}
 
+  @Auth() // Todo manage roles
   @Post()
-  async createPost(@Body() createPostDto: CreatePostDto) {
-    return this.postService.createPost(createPostDto);
+  @UseInterceptors(FileInterceptor('file'))
+  async createPost(
+    @GetUser('id') userId: number,
+    @Body() createPostDto: CreatePostDto,
+    @UploadedFile() file?: Express.Multer.File,
+  ) {
+    return this.postService.createPost(userId, createPostDto, file);
   }
 
   @Get()
-  async getAllPosts(@Query() paginationDto: PaginationDto) {
-    return this.postService.getAllPosts(paginationDto);
+  async getAllPosts(@Query() filterPostDto: FilterPostDto) {
+    return this.postService.getAllPosts(filterPostDto);
   }
 
-  @Get('user/:userId')
+  @Auth() // Todo manage roles
+  @Get('user')
   async getAllPostsByUserId(
-    @Param('userId') userId: number,
-    @Query() paginationDto: PaginationDto,
+    @GetUser('id') userId: number,
+    @Query() filterPostDto: FilterPostDto,
   ) {
-    return this.postService.getAllPostsByUserId(Number(userId), paginationDto);
+    return this.postService.getAllPostsByUserId(Number(userId), filterPostDto);
   }
 
   @Get(':slug')
@@ -38,30 +51,34 @@ export class PostController {
     return this.postService.getPostBySlug(slug);
   }
 
-  @Delete(':id')
-  async deletePost(@Param('id') id: number) {
-    return this.postService.deletePost(id);
+  @Auth() // Todo manage roles
+  @Delete(':postId')
+  async deletePost(@Param('postId') postId: number) {
+    return this.postService.deletePost(postId);
   }
 
-  @Post('like/:userId/:postId')
+  @Auth() // Todo manage roles
+  @Post('like/:postId')
   async likePost(
-    @Param('userId') userId: number,
+    @GetUser('id') userId: number,
     @Param('postId') postId: number,
   ) {
     return this.postService.likePost(userId, postId);
   }
 
-  @Post('unlike/:userId/:postId')
+  @Auth() // Todo manage roles
+  @Post('unlike/:postId')
   async unlikePost(
-    @Param('userId') userId: number,
+    @GetUser('id') userId: number,
     @Param('postId') postId: number,
   ) {
     return this.postService.unlikePost(userId, postId);
   }
 
-  @Get('liked/:userId')
+  @Auth() // Todo manage roles
+  @Get('liked')
   async getLikedPostsByUserId(
-    @Param('userId') userId: number,
+    @GetUser('id') userId: number,
     @Query() paginationDto: PaginationDto,
   ) {
     return this.postService.getLikedPostsByUserId(
