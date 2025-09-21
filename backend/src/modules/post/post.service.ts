@@ -52,7 +52,7 @@ export class PostService {
   async createPost(
     userId: number,
     createPostDto: CreatePostDto,
-    file?: Express.Multer.File,
+    image?: Express.Multer.File,
   ) {
     const { title, slug, content, categoryIds } = createPostDto;
 
@@ -86,8 +86,8 @@ export class PostService {
       throw new NotFoundException('Some categories not found');
     }
 
-    if (file) {
-      result = await this.cloudinaryService.uploadFile(file, 'post-images');
+    if (image) {
+      result = await this.cloudinaryService.uploadFile(image, 'post-images');
 
       if (!result) {
         throw new BadRequestException('Failed to upload image');
