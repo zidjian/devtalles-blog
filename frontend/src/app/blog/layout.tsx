@@ -3,6 +3,7 @@ import BlogFooter from "@/components/BlogFooter";
 import BlogNavbar from "@/components/BlogNavbar";
 import LiquidEther from "@/components/LiquidEther";
 import Particles from "@/components/Particles";
+import { AuthProvider } from "@/contexts/AuthContext";
 
 export const metadata: Metadata = {
   title: "Blog - Dev Talles",
@@ -15,7 +16,7 @@ export default function BlogLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <>
+    <AuthProvider>
       {/* Fondo de partículas - Posición fija y detrás del contenido */}
       <div className="fixed inset-0 w-full h-full z-0 pointer-events-none">
         <Particles
@@ -38,6 +39,6 @@ export default function BlogLayout({
           <BlogFooter />
         </div>
       </div>
-    </>
+    </AuthProvider>
   );
 }

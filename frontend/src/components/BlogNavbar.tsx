@@ -15,6 +15,8 @@ import {
 import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { useAuth } from "@/contexts/AuthContext";
+import { LogOut, User, UserPlus, LogIn } from "lucide-react";
 
 // Navigation links for blog
 const blogNavigationLinks = [
@@ -26,6 +28,7 @@ const blogNavigationLinks = [
 
 export default function BlogNavbar() {
   const pathname = usePathname();
+  const { user, isAuthenticated, logout, isLoading } = useAuth();
 
   const getActive = (href: string) => {
     if (href === "/blog") {
@@ -123,9 +126,71 @@ export default function BlogNavbar() {
         </div>
         {/* Right side */}
         <div className="flex items-center gap-2">
-          <Button asChild variant="ghost">
-            <Link href="/blog/createpost/new">Crear Post</Link>
-          </Button>
+          {/* Botones para usuarios autenticados */}
+          {isAuthenticated && (
+            <>
+              <Button asChild variant="ghost">
+                <Link href="/blog/createpost/new">Crear Post</Link>
+              </Button>
+
+              {/* Menu de usuario */}
+              <Popover>
+                <PopoverTrigger asChild>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="flex items-center gap-2"
+                  >
+                    <User size={16} />
+                    <span className="hidden md:inline">
+                      {user?.name || user?.email || "Usuario"}
+                    </span>
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent align="end" className="w-48 p-1">
+                  <div className="px-3 py-2 border-b border-gray-200 dark:border-gray-700">
+                    <p className="text-sm font-medium">
+                      {user?.name || "Usuario"}
+                    </p>
+                    <p className="text-xs text-gray-500 dark:text-gray-400">
+                      {user?.email}
+                    </p>
+                  </div>
+                  <div className="py-1">
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="w-full justify-start text-red-600 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-950"
+                      onClick={logout}
+                      disabled={isLoading}
+                    >
+                      <LogOut size={16} className="mr-2" />
+                      Cerrar Sesión
+                    </Button>
+                  </div>
+                </PopoverContent>
+              </Popover>
+            </>
+          )}
+
+          {/* Botones para usuarios no autenticados */}
+          {!isAuthenticated && !isLoading && (
+            <>
+              <Button asChild variant="ghost" size="sm">
+                <Link href="/blog/login" className="flex items-center gap-2">
+                  <LogIn size={16} />
+                  <span className="hidden md:inline">Iniciar Sesión</span>
+                </Link>
+              </Button>
+              <Button asChild variant="ghost" size="sm">
+                <Link href="/blog/signup" className="flex items-center gap-2">
+                  <UserPlus size={16} />
+                  <span className="hidden md:inline">Registrarse</span>
+                </Link>
+              </Button>
+            </>
+          )}
+
           <Button asChild variant={"ghost"}>
             <Link href="/">Landing</Link>
           </Button>

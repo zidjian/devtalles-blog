@@ -1,46 +1,64 @@
-import { NextRequest, NextResponse } from 'next/server';
-
-// Mock data
-const posts = [
-    {
-        id: 1,
-        title: "Introducción a React Hooks",
-        likes: 45,
-        date: "2023-10-01",
-    },
-    {
-        id: 2,
-        title: "Optimización de Performance en Next.js",
-        likes: 32,
-        date: "2023-09-15",
-    },
-    { id: 3, title: "Diseño de APIs RESTful", likes: 28, date: "2023-08-30" },
-    {
-        id: 4,
-        title: "Introducción a TypeScript",
-        likes: 50,
-        date: "2023-08-15",
-    },
-    { id: 5, title: "Tailwind CSS Avanzado", likes: 22, date: "2023-07-30" },
-];
+import { NextRequest, NextResponse } from "next/server";
 
 export async function GET(request: NextRequest) {
+  try {
+    // Get the authorization header
+    const authHeader = request.headers.get("authorization");
+
+    if (!authHeader) {
+      return NextResponse.json(
+        { error: "Authorization header required" },
+        { status: 401 }
+      );
+    }
+
+    // Get query parameters
     const { searchParams } = new URL(request.url);
-    const startDate = searchParams.get('startDate');
-    const endDate = searchParams.get('endDate');
+    const startDate = searchParams.get("startDate");
+    const endDate = searchParams.get("endDate");
 
-    const filtered = posts.filter((post) => {
-        const postDate = new Date(post.date);
-        const start = startDate ? new Date(startDate) : null;
-        const end = endDate ? new Date(endDate) : null;
+    // Build query string
+    const params = new URLSearchParams();
+    if (startDate) params.append("startDate", startDate);
+    if (endDate) params.append("endDate", endDate);
 
-        if (start && postDate < start) return false;
-        if (end && postDate > end) return false;
-        return true;
-    });
+    // Forward the request to the backend
+    const backendResponse = await fetch(
+      `${process.env.BACKEND_URL || "http://localhost:3000"}/api/post/statistics?${params.toString()}`,
+      {
+        method: "GET",
+        headers: {
+          Authorization: authHeader,
+          "Content-Type": "application/json",
+        },
+      }
+    );
 
-    const totalPosts = filtered.length;
-    const totalLikes = filtered.reduce((sum, post) => sum + post.likes, 0);
+    if (!backendResponse.ok) {
+      let errorData;
+      const contentType = backendResponse.headers.get("content-type");
 
-    return NextResponse.json({ totalPosts, totalLikes });
+      if (contentType && contentType.includes("application/json")) {
+        errorData = await backendResponse.json();
+      } else {
+        const errorText = await backendResponse.text();
+        errorData = {
+          error: "Backend error",
+          message: errorText.length > 500 ? "Internal server error" : errorText,
+          status: backendResponse.status,
+        };
+      }
+
+      return NextResponse.json(errorData, { status: backendResponse.status });
+    }
+
+    const result = await backendResponse.json();
+    return NextResponse.json(result);
+  } catch (error) {
+    console.error("Error proxying to backend:", error);
+    return NextResponse.json(
+      { error: "Internal Server Error" },
+      { status: 500 }
+    );
+  }
 }

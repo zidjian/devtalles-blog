@@ -6,6 +6,8 @@ import ShinyText from "@/components/ShinyText";
 import { useState, useEffect } from "react";
 import { Plus, Edit, Trash2 } from "lucide-react";
 import Link from "next/link";
+import { ProtectedRoute } from "@/components/ProtectedRoute";
+import { useAuthenticatedRequest } from "@/contexts/AuthContext";
 
 interface Category {
   id: number;
@@ -15,17 +17,19 @@ interface Category {
 export default function ListCategoriesPage() {
   const [categories, setCategories] = useState<Category[]>([]);
   const [loading, setLoading] = useState(true);
+  const { authenticatedFetch } = useAuthenticatedRequest();
 
   const fetchCategories = async () => {
     try {
-      const response = await fetch('/api/categories');
+      const response = await fetch("/api/categories");
       if (!response.ok) {
-        throw new Error('Failed to fetch categories');
+        throw new Error("Failed to fetch categories");
       }
       const data = await response.json();
-      setCategories(data.categories || data);
+      // Filter out the "All" category for management
+      setCategories(data.categories?.filter((cat: Category) => cat.id !== 0) || []);
     } catch (error) {
-      console.error('Error fetching categories:', error);
+      console.error("Error fetching categories:", error);
     } finally {
       setLoading(false);
     }
@@ -36,20 +40,21 @@ export default function ListCategoriesPage() {
   }, []);
 
   const handleDelete = async (id: number) => {
-    if (!confirm('¿Estás seguro de que quieres eliminar esta categoría?')) return;
+    if (!confirm("¿Estás seguro de que quieres eliminar esta categoría?"))
+      return;
 
     try {
-      const response = await fetch(`/api/categories/${id}`, {
-        method: 'DELETE',
+      const response = await authenticatedFetch(`/api/categories/${id}`, {
+        method: "DELETE",
       });
       if (!response.ok) {
-        throw new Error('Failed to delete category');
+        throw new Error("Failed to delete category");
       }
-      setCategories(categories.filter(cat => cat.id !== id));
-      alert('Categoría eliminada exitosamente');
+      setCategories(categories.filter((cat) => cat.id !== id));
+      alert("Categoría eliminada exitosamente");
     } catch (error) {
-      console.error('Error deleting category:', error);
-      alert('Error al eliminar la categoría');
+      console.error("Error deleting category:", error);
+      alert("Error al eliminar la categoría");
     }
   };
 
@@ -62,12 +67,15 @@ export default function ListCategoriesPage() {
   }
 
   return (
-    <>
+    <ProtectedRoute>
       {/* Contenido principal */}
       <div className="relative mx-auto max-w-5xl z-10 min-h-screen pt-40 px-4 py-16 sm:px-6 lg:px-0">
         <div className="mx-auto max-w-7xl">
           <div className="text-center mb-12">
-            <ShinyText text="Lista de Categorías" className="text-4xl font-bold text-white mb-4" />
+            <ShinyText
+              text="Lista de Categorías"
+              className="text-4xl font-bold text-white mb-4"
+            />
             <p className="text-lg text-white/80 max-w-2xl mx-auto mb-8">
               Gestiona todas las categorías del blog.
             </p>
@@ -77,13 +85,23 @@ export default function ListCategoriesPage() {
           <div className="mb-8">
             <div className="flex justify-between items-center">
               <div>
-                <h2 className="text-2xl font-bold text-white mb-2">Todas las Categorías</h2>
+                <h2 className="text-2xl font-bold text-white mb-2">
+                  Todas las Categorías
+                </h2>
                 <p className="text-white/60">
-                  {categories.length} categoría{categories.length !== 1 ? 's' : ''} encontrada{categories.length !== 1 ? 's' : ''}
+                  {categories.length} categoría
+                  {categories.length !== 1 ? "s" : ""} encontrada
+                  {categories.length !== 1 ? "s" : ""}
                 </p>
               </div>
-              <Button asChild className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white">
-                <Link href="/blog/createcategory/new" className="flex items-center gap-2">
+              <Button
+                asChild
+                className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white"
+              >
+                <Link
+                  href="/blog/createcategory/new"
+                  className="flex items-center gap-2"
+                >
                   <Plus className="h-4 w-4" />
                   Crear Nueva Categoría
                 </Link>
@@ -97,19 +115,33 @@ export default function ListCategoriesPage() {
               <table className="w-full">
                 <thead className="bg-white/5">
                   <tr>
-                    <th className="px-6 py-4 text-left text-xs font-medium text-white/70 uppercase tracking-wider">Nombre</th>
-                    <th className="px-6 py-4 text-left text-xs font-medium text-white/70 uppercase tracking-wider">Acciones</th>
+                    <th className="px-6 py-4 text-left text-xs font-medium text-white/70 uppercase tracking-wider">
+                      Nombre
+                    </th>
+                    <th className="px-6 py-4 text-left text-xs font-medium text-white/70 uppercase tracking-wider">
+                      Acciones
+                    </th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-white/10">
                   {categories.map((category) => (
-                    <tr key={category.id} className="hover:bg-white/5 transition-colors">
+                    <tr
+                      key={category.id}
+                      className="hover:bg-white/5 transition-colors"
+                    >
                       <td className="px-6 py-4">
-                        <div className="text-sm font-medium text-white">{category.name}</div>
+                        <div className="text-sm font-medium text-white">
+                          {category.name}
+                        </div>
                       </td>
                       <td className="px-6 py-4 text-sm font-medium">
                         <div className="flex space-x-2">
-                          <Button asChild variant="ghost" size="sm" className="text-white/70 hover:text-white hover:bg-white/10">
+                          <Button
+                            asChild
+                            variant="ghost"
+                            size="sm"
+                            className="text-white/70 hover:text-white hover:bg-white/10"
+                          >
                             <Link href={`/blog/createcategory/${category.id}`}>
                               <Edit className="h-4 w-4" />
                             </Link>
@@ -132,6 +164,6 @@ export default function ListCategoriesPage() {
           </Card>
         </div>
       </div>
-    </>
+    </ProtectedRoute>
   );
 }

@@ -4,67 +4,99 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import ShinyText from "@/components/ShinyText";
 import { useState, useEffect } from "react";
-import { Search, ChevronLeft, ChevronRight, Plus, Eye, Edit } from "lucide-react";
+import {
+  Search,
+  ChevronLeft,
+  ChevronRight,
+  Plus,
+  Eye,
+  Edit,
+} from "lucide-react";
 import { Input } from "@/components/ui/input";
 import Link from "next/link";
 import Image from "next/image";
+import { ProtectedRoute } from "@/components/ProtectedRoute";
 
 interface Post {
   id: number;
   title: string;
   slug: string;
   description: string;
-  date: string;
-  author: string;
+  createdAt: string;
+  user: {
+    id: number;
+    username: string;
+    profilePicture: string | null;
+  };
   image: string;
-  categories: string[];
+  categories: {
+    id: number;
+    name: string;
+  }[];
 }
-
 
 export default function ListPostsPage() {
   const [searchTerm, setSearchTerm] = useState("");
-  const [selectedCategory, setSelectedCategory] = useState(1);
+  const [selectedCategory, setSelectedCategory] = useState(0);
   const [currentPage, setCurrentPage] = useState(1);
   const postsPerPage = 10; // Fixed value
 
   // Separate state for filter inputs
   const [tempSearchTerm, setTempSearchTerm] = useState("");
-  const [tempCategory, setTempCategory] = useState(1);
+  const [tempCategory, setTempCategory] = useState(0);
 
   // State for fetched data
   const [posts, setPosts] = useState<Post[]>([]);
   const [totalPages, setTotalPages] = useState(0);
   const [totalPosts, setTotalPosts] = useState(0);
-  const [categories, setCategories] = useState<{id: number, name: string}[]>([]);
+  const [categories, setCategories] = useState<{ id: number; name: string }[]>(
+    []
+  );
 
-  const fetchPosts = async (search: string, categoryId: number, page: number) => {
+  const fetchPosts = async (
+    search?: string,
+    categoryId?: number,
+    page?: number
+  ) => {
     const params = new URLSearchParams({
-      search,
-      categoryId: categoryId.toString(),
-      page: page.toString(),
+      page: (page || 1).toString(),
       limit: postsPerPage.toString(),
     });
-    const response = await fetch(`/api/posts?${params.toString()}`);
+
+    // Only add categoryId if it's not 0 (All)
+    if (categoryId !== 0) {
+      params.append("categoryId", categoryId?.toString() || "0");
+    }
+
+    // Add search term if provided
+    if (search?.trim()) {
+      params.append("title", search.trim());
+    }
+
+    const response = await fetch(
+      `http://localhost:3000/api/post?${params.toString()}`
+    );
     const data = await response.json();
-    setPosts(data.posts);
-    setTotalPages(data.totalPages);
-    setTotalPosts(data.totalPosts);
+    console.log(data);
+    setPosts(data.data || []);
+    setTotalPages(data.meta?.totalPages || 0);
+    setTotalPosts(data.meta?.total || 0);
   };
 
   const fetchCategories = async () => {
-    const response = await fetch('/api/categories');
+    const response = await fetch("http://localhost:3000/api/category");
     const data = await response.json();
-    setCategories(data.categories);
+    // Add "All" option at the beginning
+    setCategories([
+      { id: 0, name: "Todas las categorías" },
+      ...data.categories,
+    ]);
   };
 
   useEffect(() => {
     fetchCategories();
-    // Initial fetch without params
-    fetch('/api/posts').then(res => res.json()).then(data => {
-      setPosts(data.posts);
-      setTotalPages(data.totalPages);
-      setTotalPosts(data.totalPosts);
-    });
+    // Initial fetch
+    fetchPosts("", 0, 1);
   }, []);
 
   const handlePageChange = (page: number) => {
@@ -86,26 +118,27 @@ export default function ListPostsPage() {
 
   const clearFilters = () => {
     setTempSearchTerm("");
-    setTempCategory(1);
+    setTempCategory(0);
     setSearchTerm("");
-    setSelectedCategory(1);
+    setSelectedCategory(0);
     setCurrentPage(1);
-    fetchPosts("", 1, 1);
+    fetchPosts("", 0, 1);
   };
 
   return (
-    <>
-
+    <ProtectedRoute>
       {/* Contenido principal */}
       <div className="relative mx-auto max-w-5xl z-10 min-h-screen pt-40 px-4 py-16 sm:px-6 lg:px-0">
         <div className="mx-auto max-w-7xl">
           <div className="text-center mb-12">
-            <ShinyText text="Lista de Posts" className="text-4xl font-bold text-white mb-4" />
+            <ShinyText
+              text="Lista de Posts"
+              className="text-4xl font-bold text-white mb-4"
+            />
             <p className="text-lg text-white/80 max-w-2xl mx-auto mb-8">
               Gestiona todos los artículos del blog con filtros y paginación.
             </p>
           </div>
-
 
           {/* Two-column layout */}
           <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
@@ -113,9 +146,12 @@ export default function ListPostsPage() {
             <div className="lg:col-span-3">
               {/* Header with subtitle and count */}
               <div className="mb-8">
-                <h2 className="text-2xl font-bold text-white mb-2">Todos los Artículos</h2>
+                <h2 className="text-2xl font-bold text-white mb-2">
+                  Todos los Artículos
+                </h2>
                 <p className="text-white/60">
-                  {totalPosts} artículo{totalPosts !== 1 ? 's' : ''} encontrado{totalPosts !== 1 ? 's' : ''}
+                  {totalPosts} artículo{totalPosts !== 1 ? "s" : ""} encontrado
+                  {totalPosts !== 1 ? "s" : ""}
                 </p>
               </div>
 
@@ -124,58 +160,94 @@ export default function ListPostsPage() {
                 <table className="w-full">
                   <thead className="bg-white/5">
                     <tr>
-                      <th className="px-6 py-4 text-left text-xs font-medium text-white/70 uppercase tracking-wider">Título</th>
-                      <th className="px-6 py-4 text-left text-xs font-medium text-white/70 uppercase tracking-wider">Categoría</th>
-                      <th className="px-6 py-4 text-left text-xs font-medium text-white/70 uppercase tracking-wider">Fecha</th>
-                      <th className="px-6 py-4 text-left text-xs font-medium text-white/70 uppercase tracking-wider">Autor</th>
-                      <th className="px-6 py-4 text-left text-xs font-medium text-white/70 uppercase tracking-wider">Acciones</th>
+                      <th className="px-6 py-4 text-left text-xs font-medium text-white/70 uppercase tracking-wider">
+                        Título
+                      </th>
+                      <th className="px-6 py-4 text-left text-xs font-medium text-white/70 uppercase tracking-wider">
+                        Categoría
+                      </th>
+                      <th className="px-6 py-4 text-left text-xs font-medium text-white/70 uppercase tracking-wider">
+                        Fecha
+                      </th>
+                      <th className="px-6 py-4 text-left text-xs font-medium text-white/70 uppercase tracking-wider">
+                        Autor
+                      </th>
+                      <th className="px-6 py-4 text-left text-xs font-medium text-white/70 uppercase tracking-wider">
+                        Acciones
+                      </th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-white/10">
-                    {posts.map((post) => (
-                      <tr key={post.id} className="hover:bg-white/5 transition-colors">
+                    {posts?.map((post) => (
+                      <tr
+                        key={post.id}
+                        className="hover:bg-white/5 transition-colors"
+                      >
                         <td className="px-6 py-4">
                           <div className="flex items-center">
                             <div className="flex-shrink-0 h-12 w-12">
-                              <Image className="h-12 w-12 rounded-lg object-cover" src={post.image} alt={post.title} width={48} height={48} />
+                              <Image
+                                className="h-12 w-12 rounded-lg object-cover"
+                                src={post.image}
+                                alt={post.title}
+                                width={48}
+                                height={48}
+                              />
                             </div>
                             <div className="ml-4">
-                              <div className="text-sm font-medium text-white">{post.title}</div>
-                              <div className="text-sm text-white/60 line-clamp-1">{post.description}</div>
+                              <div className="text-sm font-medium text-white">
+                                {post.title}
+                              </div>
+                              <div className="text-sm text-white/60 line-clamp-1">
+                                {post.description || "Sin descripción"}
+                              </div>
                             </div>
                           </div>
                         </td>
                         <td className="px-6 py-4">
                           <div className="flex flex-wrap gap-1">
                             {post.categories?.map((cat, index) => (
-                              <span key={index} className="px-2 py-1 bg-white/20 backdrop-blur-md text-white text-xs font-medium rounded-full border border-white/30">
-                                {cat}
+                              <span
+                                key={index}
+                                className="px-2 py-1 bg-white/20 backdrop-blur-md text-white text-xs font-medium rounded-full border border-white/30"
+                              >
+                                {cat.name}
                               </span>
                             ))}
                           </div>
                         </td>
                         <td className="px-6 py-4 text-sm text-white/70">
-                          {new Date(post.date).toLocaleDateString()}
+                          {new Date(post.createdAt).toLocaleDateString()}
                         </td>
                         <td className="px-6 py-4 text-sm text-white/70">
                           <div className="flex items-center">
                             <div className="w-6 h-6 bg-gradient-to-r from-purple-400 to-pink-400 rounded-full flex items-center justify-center mr-2">
                               <span className="text-white text-xs font-bold">
-                                {post.author.charAt(0).toUpperCase()}
+                                {post.user.username.charAt(0).toUpperCase()}
                               </span>
                             </div>
-                            {post.author}
+                            {post.user.username}
                           </div>
                         </td>
                         <td className="px-6 py-4 text-sm font-medium">
                           <div className="flex space-x-2">
-                            <Button asChild variant="ghost" size="sm" className="text-white/70 hover:text-white hover:bg-white/10">
+                            <Button
+                              asChild
+                              variant="ghost"
+                              size="sm"
+                              className="text-white/70 hover:text-white hover:bg-white/10"
+                            >
                               <Link href={`/blog/post/${post.slug}`}>
                                 <Eye className="h-4 w-4" />
                               </Link>
                             </Button>
-                            <Button asChild variant="ghost" size="sm" className="text-white/70 hover:text-white hover:bg-white/10">
-                              <Link href={`/blog/createpost/${post.id}`}>
+                            <Button
+                              asChild
+                              variant="ghost"
+                              size="sm"
+                              className="text-white/70 hover:text-white hover:bg-white/10"
+                            >
+                              <Link href={`/blog/createpost/${post.slug}`}>
                                 <Edit className="h-4 w-4" />
                               </Link>
                             </Button>
@@ -201,16 +273,22 @@ export default function ListPostsPage() {
                   </Button>
 
                   <div className="flex gap-2">
-                    {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
-                      <Button
-                        key={page}
-                        variant={currentPage === page ? "default" : "ghost"}
-                        onClick={(e) => handlePageClick(page, e)}
-                        className={currentPage === page ? "bg-white/20 text-white" : "text-white/60 hover:bg-white/10"}
-                      >
-                        {page}
-                      </Button>
-                    ))}
+                    {Array.from({ length: totalPages }, (_, i) => i + 1).map(
+                      (page) => (
+                        <Button
+                          key={page}
+                          variant={currentPage === page ? "default" : "ghost"}
+                          onClick={(e) => handlePageClick(page, e)}
+                          className={
+                            currentPage === page
+                              ? "bg-white/20 text-white"
+                              : "text-white/60 hover:bg-white/10"
+                          }
+                        >
+                          {page}
+                        </Button>
+                      )
+                    )}
                   </div>
 
                   <Button
@@ -230,8 +308,14 @@ export default function ListPostsPage() {
             <div className="lg:col-span-1">
               <div className="sticky top-24">
                 <div className="mb-6">
-                  <Button asChild className="w-full bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white">
-                    <Link href="/blog/createpost/new" className="flex items-center justify-center gap-2">
+                  <Button
+                    asChild
+                    className="w-full bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white"
+                  >
+                    <Link
+                      href="/blog/createpost/new"
+                      className="flex items-center justify-center gap-2"
+                    >
                       <Plus className="h-4 w-4" />
                       Crear Nuevo Post
                     </Link>
@@ -252,7 +336,9 @@ export default function ListPostsPage() {
                         type="text"
                         placeholder="Buscar artículos..."
                         value={tempSearchTerm}
-                        onChange={(e: React.ChangeEvent<HTMLInputElement>) => setTempSearchTerm(e.target.value)}
+                        onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                          setTempSearchTerm(e.target.value)
+                        }
                         className="pl-10"
                       />
                     </div>
@@ -262,11 +348,17 @@ export default function ListPostsPage() {
                       <label className="block text-white mb-2">Categoría</label>
                       <select
                         value={tempCategory}
-                        onChange={(e: React.ChangeEvent<HTMLSelectElement>) => setTempCategory(parseInt(e.target.value))}
+                        onChange={(e: React.ChangeEvent<HTMLSelectElement>) =>
+                          setTempCategory(parseInt(e.target.value))
+                        }
                         className="w-full h-10 rounded-md border border-white/20 bg-white/5 px-3 py-2 text-sm text-white focus:outline-none focus:ring-2 focus:ring-white/20 focus:border-white/20"
                       >
-                        {categories.map((category) => (
-                          <option key={category.id} value={category.id} className="bg-black text-white">
+                        {categories?.map((category) => (
+                          <option
+                            key={category.id}
+                            value={category.id}
+                            className="bg-black text-white"
+                          >
                             {category.name}
                           </option>
                         ))}
@@ -289,7 +381,6 @@ export default function ListPostsPage() {
                         Limpiar
                       </Button>
                     </div>
-
                   </CardContent>
                 </Card>
               </div>
@@ -297,6 +388,6 @@ export default function ListPostsPage() {
           </div>
         </div>
       </div>
-    </>
+    </ProtectedRoute>
   );
 }

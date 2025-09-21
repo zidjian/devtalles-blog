@@ -1,59 +1,172 @@
-import { NextResponse } from 'next/server';
-
-// Mock categories data
-const mockCategories = [
-    { id: 1, name: "React" },
-    { id: 2, name: "Next.js" },
-    { id: 3, name: "Backend" },
-    { id: 4, name: "TypeScript" },
-    { id: 5, name: "CSS" },
-];
+import { NextRequest, NextResponse } from "next/server";
 
 export async function GET(
-    request: Request,
-    { params }: { params: { id: string } }
+  request: NextRequest,
+  { params }: { params: Promise<{ id: string }> }
 ) {
-    const id = parseInt(params.id);
-    const category = mockCategories.find(cat => cat.id === id);
+  try {
+    const { id } = await params;
 
-    if (!category) {
-        return NextResponse.json({ error: 'Category not found' }, { status: 404 });
+    // Forward the request to the backend
+    const backendResponse = await fetch(
+      `${
+        process.env.BACKEND_URL || "http://localhost:3000"
+      }/api/category/${id}`,
+      {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+        },
+      }
+    );
+
+    if (!backendResponse.ok) {
+      let errorData;
+      const contentType = backendResponse.headers.get("content-type");
+
+      if (contentType && contentType.includes("application/json")) {
+        errorData = await backendResponse.json();
+      } else {
+        const errorText = await backendResponse.text();
+        errorData = {
+          error: "Backend error",
+          message: errorText.length > 500 ? "Internal server error" : errorText,
+          status: backendResponse.status,
+        };
+      }
+
+      return NextResponse.json(errorData, { status: backendResponse.status });
     }
 
-    return NextResponse.json({ category });
+    const result = await backendResponse.json();
+    return NextResponse.json(result);
+  } catch (error) {
+    console.error("Error proxying to backend:", error);
+    return NextResponse.json(
+      { error: "Internal Server Error" },
+      { status: 500 }
+    );
+  }
 }
 
 export async function PUT(
-    request: Request,
-    { params }: { params: { id: string } }
+  request: NextRequest,
+  { params }: { params: { id: string } }
 ) {
-    const id = parseInt(params.id);
-    const body = await request.json();
-    const { name } = body;
+  try {
+    // Get the authorization header
+    const authHeader = request.headers.get("authorization");
 
-    const categoryIndex = mockCategories.findIndex(cat => cat.id === id);
-
-    if (categoryIndex === -1) {
-        return NextResponse.json({ error: 'Category not found' }, { status: 404 });
+    if (!authHeader) {
+      return NextResponse.json(
+        { error: "Authorization header required" },
+        { status: 401 }
+      );
     }
 
-    mockCategories[categoryIndex].name = name;
+    const { id } = params;
+    const body = await request.json();
 
-    return NextResponse.json({ category: mockCategories[categoryIndex] });
+    // Forward the request to the backend
+    const backendResponse = await fetch(
+      `${
+        process.env.BACKEND_URL || "http://localhost:3000"
+      }/api/category/${id}`,
+      {
+        method: "PATCH",
+        headers: {
+          Authorization: authHeader,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(body),
+      }
+    );
+
+    if (!backendResponse.ok) {
+      let errorData;
+      const contentType = backendResponse.headers.get("content-type");
+
+      if (contentType && contentType.includes("application/json")) {
+        errorData = await backendResponse.json();
+      } else {
+        const errorText = await backendResponse.text();
+        errorData = {
+          error: "Backend error",
+          message: errorText.length > 500 ? "Internal server error" : errorText,
+          status: backendResponse.status,
+        };
+      }
+
+      return NextResponse.json(errorData, { status: backendResponse.status });
+    }
+
+    const result = await backendResponse.json();
+    return NextResponse.json(result);
+  } catch (error) {
+    console.error("Error proxying to backend:", error);
+    return NextResponse.json(
+      { error: "Internal Server Error" },
+      { status: 500 }
+    );
+  }
 }
 
 export async function DELETE(
-    request: Request,
-    { params }: { params: { id: string } }
+  request: NextRequest,
+  { params }: { params: { id: string } }
 ) {
-    const id = parseInt(params.id);
-    const categoryIndex = mockCategories.findIndex(cat => cat.id === id);
+  try {
+    // Get the authorization header
+    const authHeader = request.headers.get("authorization");
 
-    if (categoryIndex === -1) {
-        return NextResponse.json({ error: 'Category not found' }, { status: 404 });
+    if (!authHeader) {
+      return NextResponse.json(
+        { error: "Authorization header required" },
+        { status: 401 }
+      );
     }
 
-    const deletedCategory = mockCategories.splice(categoryIndex, 1)[0];
+    const { id } = params;
 
-    return NextResponse.json({ category: deletedCategory });
+    // Forward the request to the backend
+    const backendResponse = await fetch(
+      `${
+        process.env.BACKEND_URL || "http://localhost:3000"
+      }/api/category/${id}`,
+      {
+        method: "DELETE",
+        headers: {
+          Authorization: authHeader,
+          "Content-Type": "application/json",
+        },
+      }
+    );
+
+    if (!backendResponse.ok) {
+      let errorData;
+      const contentType = backendResponse.headers.get("content-type");
+
+      if (contentType && contentType.includes("application/json")) {
+        errorData = await backendResponse.json();
+      } else {
+        const errorText = await backendResponse.text();
+        errorData = {
+          error: "Backend error",
+          message: errorText.length > 500 ? "Internal server error" : errorText,
+          status: backendResponse.status,
+        };
+      }
+
+      return NextResponse.json(errorData, { status: backendResponse.status });
+    }
+
+    const result = await backendResponse.json();
+    return NextResponse.json(result);
+  } catch (error) {
+    console.error("Error proxying to backend:", error);
+    return NextResponse.json(
+      { error: "Internal Server Error" },
+      { status: 500 }
+    );
+  }
 }

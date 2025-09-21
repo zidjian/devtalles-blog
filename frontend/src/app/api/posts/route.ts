@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from "next/server";
 
 // Mock data
 const categories = [
@@ -15,7 +15,8 @@ const blogPosts = [
     id: 1,
     title: "Introducción a React Hooks",
     slug: "introduccion-a-react-hooks",
-    description: "Aprende los fundamentos de los hooks en React y cómo mejorar tu código.",
+    description:
+      "Aprende los fundamentos de los hooks en React y cómo mejorar tu código.",
     date: "2023-10-01",
     author: "Dev Talles",
     image: "/devi1.png",
@@ -48,7 +49,8 @@ function increment() {
     id: 2,
     title: "Optimización de Performance en Next.js",
     slug: "optimizacion-de-performance-en-nextjs",
-    description: "Técnicas avanzadas para mejorar el rendimiento de tus aplicaciones Next.js.",
+    description:
+      "Técnicas avanzadas para mejorar el rendimiento de tus aplicaciones Next.js.",
     date: "2023-09-15",
     author: "Dev Talles",
     image: "/devi2.png",
@@ -70,7 +72,8 @@ function increment() {
     id: 3,
     title: "Diseño de APIs RESTful",
     slug: "diseno-de-apis-restful",
-    description: "Mejores prácticas para diseñar APIs que sean escalables y mantenibles.",
+    description:
+      "Mejores prácticas para diseñar APIs que sean escalables y mantenibles.",
     date: "2023-08-30",
     author: "Dev Talles",
     image: "/devi3.png",
@@ -93,7 +96,8 @@ function increment() {
     id: 4,
     title: "Introducción a TypeScript",
     slug: "introduccion-a-typescript",
-    description: "Aprende los fundamentos de TypeScript para mejorar tu desarrollo en JavaScript.",
+    description:
+      "Aprende los fundamentos de TypeScript para mejorar tu desarrollo en JavaScript.",
     date: "2023-08-15",
     author: "Dev Talles",
     image: "/devi1.png",
@@ -120,7 +124,8 @@ function increment() {
     id: 5,
     title: "Tailwind CSS Avanzado",
     slug: "tailwind-css-avanzado",
-    description: "Técnicas avanzadas para crear diseños responsivos con Tailwind CSS.",
+    description:
+      "Técnicas avanzadas para crear diseños responsivos con Tailwind CSS.",
     date: "2023-07-30",
     author: "Dev Talles",
     image: "/devi2.png",
@@ -164,7 +169,8 @@ function increment() {
     id: 7,
     title: "Testing en React con Jest",
     slug: "testing-en-react-con-jest",
-    description: "Aprende a escribir tests efectivos para tus componentes de React usando Jest.",
+    description:
+      "Aprende a escribir tests efectivos para tus componentes de React usando Jest.",
     date: "2023-07-01",
     author: "Dev Talles",
     image: "/devi1.png",
@@ -186,7 +192,8 @@ function increment() {
     id: 8,
     title: "Animaciones con Framer Motion",
     slug: "animaciones-con-framer-motion",
-    description: "Crea animaciones fluidas y atractivas en tus proyectos React.",
+    description:
+      "Crea animaciones fluidas y atractivas en tus proyectos React.",
     date: "2023-06-15",
     author: "Dev Talles",
     image: "/devi2.png",
@@ -208,7 +215,8 @@ function increment() {
     id: 9,
     title: "Autenticación en NextAuth.js",
     slug: "autenticacion-en-nextauthjs",
-    description: "Implementa autenticación segura y moderna en tus apps Next.js.",
+    description:
+      "Implementa autenticación segura y moderna en tus apps Next.js.",
     date: "2023-06-01",
     author: "Dev Talles",
     image: "/devi3.png",
@@ -252,7 +260,8 @@ function increment() {
     id: 11,
     title: "Deploy en Vercel",
     slug: "deploy-en-vercel",
-    description: "Guía paso a paso para desplegar tus proyectos Next.js en Vercel.",
+    description:
+      "Guía paso a paso para desplegar tus proyectos Next.js en Vercel.",
     date: "2023-05-01",
     author: "Dev Talles",
     image: "/devi2.png",
@@ -274,7 +283,8 @@ function increment() {
     id: 12,
     title: "Gestión de estado con Redux Toolkit",
     slug: "gestion-de-estado-con-redux-toolkit",
-    description: "Simplifica la gestión de estado en aplicaciones React modernas.",
+    description:
+      "Simplifica la gestión de estado en aplicaciones React modernas.",
     date: "2023-04-15",
     author: "Dev Talles",
     image: "/devi3.png",
@@ -296,7 +306,8 @@ function increment() {
     id: 13,
     title: "SEO en Next.js",
     slug: "seo-en-nextjs",
-    description: "Mejora el posicionamiento de tus páginas con buenas prácticas de SEO.",
+    description:
+      "Mejora el posicionamiento de tus páginas con buenas prácticas de SEO.",
     date: "2023-04-01",
     author: "Dev Talles",
     image: "/devi1.png",
@@ -361,53 +372,127 @@ function increment() {
 ];
 
 export async function GET(request: NextRequest) {
+  try {
     const { searchParams } = new URL(request.url);
-    const search = searchParams.get('search') || '';
-    const categoryId = parseInt(searchParams.get('categoryId') || '1');
-    const page = parseInt(searchParams.get('page') || '1');
-    const limit = parseInt(searchParams.get('limit') || '10');
+    
+    // Build query string for backend
+    const backendParams = new URLSearchParams();
+    
+    // Add search parameter if provided
+    const search = searchParams.get("search");
+    if (search) {
+      backendParams.append("title", search);
+    }
+    
+    // Add categoryId parameter if provided and not 0 (All)
+    const categoryId = searchParams.get("categoryId");
+    if (categoryId && categoryId !== "0") {
+      backendParams.append("categoryId", categoryId);
+    }
+    
+    // Add pagination parameters
+    const page = searchParams.get("page") || "1";
+    const limit = searchParams.get("limit") || "10";
+    backendParams.append("page", page);
+    backendParams.append("limit", limit);
 
-    const categoryName = categories.find(cat => cat.id === categoryId)?.name || 'All';
+    // Forward the request to the backend
+    const backendResponse = await fetch(
+      `${process.env.BACKEND_URL || "http://localhost:3000"}/api/post?${backendParams.toString()}`,
+      {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+        },
+      }
+    );
 
-    // Filter posts
-    const filtered = blogPosts.filter((post) => {
-        const matchesSearch = post.title.toLowerCase().includes(search.toLowerCase()) ||
-                              post.description.toLowerCase().includes(search.toLowerCase());
-        const matchesCategory = categoryName === 'All' || post.categories.includes(categoryName);
-        return matchesSearch && matchesCategory;
+    if (!backendResponse.ok) {
+      let errorData;
+      const contentType = backendResponse.headers.get("content-type");
+
+      if (contentType && contentType.includes("application/json")) {
+        errorData = await backendResponse.json();
+      } else {
+        const errorText = await backendResponse.text();
+        errorData = {
+          error: "Backend error",
+          message: errorText.length > 500 ? "Internal server error" : errorText,
+          status: backendResponse.status,
+        };
+      }
+
+      return NextResponse.json(errorData, { status: backendResponse.status });
+    }
+
+    const result = await backendResponse.json();
+    
+    // Transform the response to match the expected format
+    return NextResponse.json({
+      posts: result.data || [],
+      totalPages: result.meta?.totalPages || 1,
+      totalPosts: result.meta?.total || 0,
     });
-
-    // Pagination
-    const totalPosts = filtered.length;
-    const totalPages = Math.ceil(totalPosts / limit);
-    const startIndex = (page - 1) * limit;
-    const endIndex = startIndex + limit;
-    const posts = filtered.slice(startIndex, endIndex);
-
-    return NextResponse.json({ posts, totalPages, totalPosts });
+  } catch (error) {
+    console.error("Error proxying to backend:", error);
+    return NextResponse.json(
+      { error: "Internal Server Error" },
+      { status: 500 }
+    );
+  }
 }
 
 export async function POST(request: NextRequest) {
-    const body = await request.json();
-    const { title, content, categories: postCategories, image } = body;
+  try {
+    // Get the authorization header
+    const authHeader = request.headers.get("authorization");
 
-    // Generate new id
-    const newId = Math.max(...blogPosts.map(p => p.id)) + 1;
-    const newSlug = title.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+    if (!authHeader) {
+      return NextResponse.json(
+        { error: "Authorization header required" },
+        { status: 401 }
+      );
+    }
 
-    const newPost = {
-        id: newId,
-        title,
-        slug: newSlug,
-        description: content.substring(0, 100) + '...', // Simple description
-        date: new Date().toISOString().split('T')[0],
-        author: "Dev Talles",
-        image: image || "/devi1.png",
-        categories: postCategories,
-        content,
-    };
+    // Forward the request to the backend
+    const formData = await request.formData();
 
-    blogPosts.push(newPost);
+    const backendResponse = await fetch(
+      `${process.env.BACKEND_URL || "http://localhost:3000"}/api/post`,
+      {
+        method: "POST",
+        headers: {
+          Authorization: authHeader,
+        },
+        body: formData,
+      }
+    );
 
-    return NextResponse.json({ post: newPost });
+    if (!backendResponse.ok) {
+      let errorData;
+      const contentType = backendResponse.headers.get("content-type");
+
+      if (contentType && contentType.includes("application/json")) {
+        errorData = await backendResponse.json();
+      } else {
+        const errorText = await backendResponse.text();
+        errorData = {
+          error: "Backend error",
+          message: errorText.length > 500 ? "Internal server error" : errorText,
+          status: backendResponse.status,
+        };
+      }
+
+      return NextResponse.json(errorData, { status: backendResponse.status });
+    }
+
+    const result = await backendResponse.json();
+    return NextResponse.json(result);
+  } catch (error) {
+    console.error("Error proxying to backend:", error);
+    return NextResponse.json(
+      { error: "Internal Server Error" },
+      { status: 500 }
+    );
+  }
 }
