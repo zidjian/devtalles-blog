@@ -28,7 +28,7 @@ jobs:
         run: cd backend && zip -r ../app.zip .
 
       - name: Deploy to Elastic Beanstalk
-        run: pip install awsebcli && cd backend && eb init devtalles --region us-east-1 --platform "Node.js" && eb use nestjs-env && eb setenv DATABASE_URL=${{ secrets.DATABASE_URL }} JWT_SECRET=${{ secrets.JWT_SECRET }} PORT=${{ secrets.PORT }} && eb deploy
+        run: pip install awsebcli && cd backend && eb init devtalles --region us-east-1 --platform "Node.js" && eb use nestjs-env && eb setenv DATABASE_URL=${{ secrets.DATABASE_URL }} JWT_SECRET=${{ secrets.JWT_SECRET }} PORT=${{ secrets.PORT }} CLOUDINARY_CLOUD_NAME=${{ secrets.CLOUDINARY_CLOUD_NAME }} CLOUDINARY_API_KEY=${{ secrets.CLOUDINARY_API_KEY }} CLOUDINARY_API_SECRET=${{ secrets.CLOUDINARY_API_SECRET }} && eb deploy
         env:
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
