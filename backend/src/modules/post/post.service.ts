@@ -117,7 +117,7 @@ export class PostService {
     });
   }
 
-  async getPostBySlug(slug: string) {
+  async getPostBySlug(userId: number, slug: string) {
     const post = await this.prisma.post.findUnique({
       where: { slug },
       include: {
@@ -160,10 +160,38 @@ export class PostService {
       limit: 5,
     });
 
+    // check if user liked the post
+    const like = await this.prisma.like.findUnique({
+      where: {
+        userId_postId: {
+          userId,
+          postId: post.id,
+        },
+      },
+    });
+
+    // get related posts 
+    const categoryIds = categories.map(c => c.id);
+    let related: { slug: string; title: string; image: string | null }[] = [];
+
+    if (categoryIds.length > 0) {
+      related = await this.prisma.post.findMany({
+        where: {
+          id: { not: post.id },
+          categories: { some: { categoryId: { in: categoryIds } } },
+        },
+        select: { slug: true, title: true, image: true },
+        orderBy: { createdAt: "desc" },
+        take: 3,
+      });
+    }
+
     return {
       ...post,
       comments,
       categories,
+      liked: like !== null,
+      related,
     };
   }
 
@@ -260,7 +288,7 @@ export class PostService {
     id: number,
     userId: number,
     updatePostDto: any,
-    file?: Express.Multer.File,
+    image?: Express.Multer.File,
   ) {
     const { title, slug, content, categoryIds } = updatePostDto;
 
@@ -312,8 +340,8 @@ export class PostService {
     }
 
     let result: any;
-    if (file) {
-      result = await this.cloudinaryService.uploadFile(file, 'post-images');
+    if (image) {
+      result = await this.cloudinaryService.uploadFile(image, 'post-images');
       if (!result) {
         throw new BadRequestException('Failed to upload image');
       }

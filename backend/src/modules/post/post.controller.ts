@@ -53,21 +53,25 @@ export class PostController {
     return this.postService.getPostById(Number(id));
   }
 
+  @Auth()
   @Get(':slug')
-  async getPostBySlug(@Param('slug') slug: string) {
-    return this.postService.getPostBySlug(slug);
+  async getPostBySlug(
+    @GetUser('id') userId: number,
+    @Param('slug') slug: string,
+  ) {
+    return this.postService.getPostBySlug(userId, slug);
   }
 
   @Auth()
   @Put(':id')
-  @UseInterceptors(FileInterceptor('file'))
+  @UseInterceptors(FileInterceptor('image'))
   async updatePost(
     @Param('id') id: number,
     @GetUser('id') userId: number,
     @Body() updatePostDto: UpdatePostDto,
-    @UploadedFile() file?: Express.Multer.File,
+    @UploadedFile() image?: Express.Multer.File,
   ) {
-    return this.postService.updatePost(Number(id), userId, updatePostDto, file);
+    return this.postService.updatePost(Number(id), userId, updatePostDto, image);
   }
 
   @Auth()
@@ -95,7 +99,7 @@ export class PostController {
   }
 
   @Auth()
-  @Get('liked')
+  @Get('likes/liked')
   async getLikedPostsByUserId(
     @GetUser('id') userId: number,
     @Query() paginationDto: PaginationDto,
