@@ -1,85 +1,103 @@
-import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
 import { CreateCategoryDto } from './dto/create-category.dto';
 import { UpdateCategoryDto } from './dto/update-category.dto';
 
 @Injectable()
 export class CategoryService {
-    constructor(private readonly prisma: PrismaService) {}
+  constructor(private readonly prisma: PrismaService) {}
 
-    async getAllCategories() {
-        const categories = await this.prisma.category.findMany();
+  async getAllCategories() {
+    const categories = await this.prisma.category.findMany();
 
-        if (!categories) {
-            throw new NotFoundException('Categories not found');
-        }
-
-        return categories;
+    if (!categories) {
+      throw new NotFoundException('Categories not found');
     }
 
-    async getCategoryById(id: number) {
-        const category = await this.prisma.category.findUnique({ where: { id } });
+    return {
+      ok: true,
+      categories,
+    };
+  }
 
-        if (!category) {
-            throw new NotFoundException('Category not found');
-        }
+  async getCategoryById(id: number) {
+    const category = await this.prisma.category.findUnique({ where: { id } });
 
-        return category;
+    if (!category) {
+      throw new NotFoundException('Category not found');
     }
 
-    async getCategoryBySlug(slug: string) {
-        const category = await this.prisma.category.findUnique({ where: { slug } });
+    return {
+      ok: true,
+      category,
+    };
+  }
 
-        if (!category) {
-            throw new NotFoundException('Category not found');
-        }
+  async getCategoryBySlug(slug: string) {
+    const category = await this.prisma.category.findUnique({ where: { slug } });
 
-        return category;
-    }
-    
-    async createCategory(createCategoryDto: CreateCategoryDto) {
-
-        const { name, slug } = createCategoryDto;
-
-        const category = await this.prisma.category.create({ data: { name, slug } });
-
-        if (!category) {
-            throw new BadRequestException('Category not created');
-        }
-
-        return category;
+    if (!category) {
+      throw new NotFoundException('Category not found');
     }
 
-    async updateCategory(id: number, updateCategoryDto: UpdateCategoryDto) {
+    return category;
+  }
 
-        const category = await this.getCategoryById(id);
+  async createCategory(createCategoryDto: CreateCategoryDto) {
+    const { name, slug } = createCategoryDto;
 
-        if(!category) {
-            throw new NotFoundException('Category not found');
-        }
+    const category = await this.prisma.category.create({
+      data: { name, slug },
+    });
 
-        const updatedCategory = await this.prisma.category.update({ where: { id }, data: updateCategoryDto });
-
-        if (!updatedCategory) {
-            throw new BadRequestException('Category not updated');
-        }
-
-        return updatedCategory;
+    if (!category) {
+      throw new BadRequestException('Category not created');
     }
 
-    async deleteCategory(id: number) {
-        const category = await this.getCategoryById(id);
+    return {
+      ok: true,
+      category,
+    };
+  }
 
-        if(!category) {
-            throw new NotFoundException('Category not found');
-        }
+  async updateCategory(id: number, updateCategoryDto: UpdateCategoryDto) {
+    const category = await this.getCategoryById(id);
 
-        const deletedCategory = await this.prisma.category.delete({ where: { id } });
-
-        if (!deletedCategory) {
-            throw new BadRequestException('Category not deleted');
-        }
-
-        return deletedCategory;
+    if (!category) {
+      throw new NotFoundException('Category not found');
     }
+
+    const updatedCategory = await this.prisma.category.update({
+      where: { id },
+      data: updateCategoryDto,
+    });
+
+    if (!updatedCategory) {
+      throw new BadRequestException('Category not updated');
+    }
+
+    return updatedCategory;
+  }
+
+  async deleteCategory(id: number) {
+    const category = await this.getCategoryById(id);
+
+    if (!category) {
+      throw new NotFoundException('Category not found');
+    }
+
+    const deletedCategory = await this.prisma.category.delete({
+      where: { id },
+    });
+
+    if (!deletedCategory) {
+      throw new BadRequestException('Category not deleted');
+    }
+
+    return deletedCategory;
+  }
 }

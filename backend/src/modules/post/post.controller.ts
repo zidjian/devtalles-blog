@@ -1,4 +1,12 @@
-import { Body, Controller, Delete, Get, Param, Post, Query } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Delete,
+  Get,
+  Param,
+  Post,
+  Query,
+} from '@nestjs/common';
 import { PostService } from './post.service';
 import { PaginationDto } from 'src/common/dto/pagination.dto';
 import { CreatePostDto } from './dto/create-post.dto';
@@ -19,8 +27,8 @@ export class PostController {
 
   @Get('user/:userId')
   async getAllPostsByUserId(
-    @Param('userId') userId: number, 
-    @Query() paginationDto: PaginationDto
+    @Param('userId') userId: number,
+    @Query() paginationDto: PaginationDto,
   ) {
     return this.postService.getAllPostsByUserId(Number(userId), paginationDto);
   }
@@ -36,17 +44,29 @@ export class PostController {
   }
 
   @Post('like/:userId/:postId')
-  async likePost(@Param('userId') userId: number, @Param('postId') postId: number) {
+  async likePost(
+    @Param('userId') userId: number,
+    @Param('postId') postId: number,
+  ) {
     return this.postService.likePost(userId, postId);
   }
 
   @Post('unlike/:userId/:postId')
-  async unlikePost(@Param('userId') userId: number, @Param('postId') postId: number) {
+  async unlikePost(
+    @Param('userId') userId: number,
+    @Param('postId') postId: number,
+  ) {
     return this.postService.unlikePost(userId, postId);
   }
 
   @Get('liked/:userId')
-  async getLikedPostsByUserId(@Param('userId') userId: number, @Query() paginationDto: PaginationDto) {
-    return this.postService.getLikedPostsByUserId(Number(userId), paginationDto);
+  async getLikedPostsByUserId(
+    @Param('userId') userId: number,
+    @Query() paginationDto: PaginationDto,
+  ) {
+    return this.postService.getLikedPostsByUserId(
+      Number(userId),
+      paginationDto,
+    );
   }
 }

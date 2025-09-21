@@ -41,7 +41,7 @@ export default function BlogNavbar() {
   };
 
   return (
-    <header className="fixed absolute mx-auto max-w-5xl rounded-full top-8 left-0 right-0 z-20 px-4 md:px-6 bg-black/20 backdrop-blur-lg border border-white/10">
+    <header className="fixed absolute mx-auto max-w-5xl rounded-full top-8 left-0 right-0 z-20 px-4 md:px-6 bg-black/20 backdrop-blur-lg bg-white/5 border border-white/10">
       <div className="flex h-16 items-center justify-between gap-4">
         {/* Left side */}
         <div className="flex items-center gap-2">
@@ -83,13 +83,17 @@ export default function BlogNavbar() {
             <PopoverContent align="start" className="w-36 p-1 md:hidden">
               <NavigationMenu className="max-w-none *:w-full">
                 <NavigationMenuList className="flex-col items-start gap-0 md:gap-2">
-                      {blogNavigationLinks.map((link, index) => (
-                        <NavigationMenuItem key={index} className="w-full">
-                          <NavigationMenuLink asChild className="py-1.5" active={getActive(link.href)}>
-                            <Link href={link.href}>{link.label}</Link>
-                          </NavigationMenuLink>
-                        </NavigationMenuItem>
-                      ))}
+                  {blogNavigationLinks.map((link, index) => (
+                    <NavigationMenuItem key={index} className="w-full">
+                      <NavigationMenuLink
+                        asChild
+                        className="py-1.5"
+                        active={getActive(link.href)}
+                      >
+                        <Link href={link.href}>{link.label}</Link>
+                      </NavigationMenuLink>
+                    </NavigationMenuItem>
+                  ))}
                 </NavigationMenuList>
               </NavigationMenu>
             </PopoverContent>
@@ -104,7 +108,11 @@ export default function BlogNavbar() {
               <NavigationMenuList className="gap-2">
                 {blogNavigationLinks.map((link, index) => (
                   <NavigationMenuItem key={index}>
-                    <NavigationMenuLink asChild active={getActive(link.href)} className="">
+                    <NavigationMenuLink
+                      asChild
+                      active={getActive(link.href)}
+                      className=""
+                    >
                       <Link href={link.href}>{link.label}</Link>
                     </NavigationMenuLink>
                   </NavigationMenuItem>
@@ -116,7 +124,10 @@ export default function BlogNavbar() {
         {/* Right side */}
         <div className="flex items-center gap-2">
           <Button asChild variant="ghost">
-            <Link href="/blog/login">Login</Link>
+            <Link href="/blog/createpost/new">Crear Post</Link>
+          </Button>
+          <Button asChild variant={"ghost"}>
+            <Link href="/">Landing</Link>
           </Button>
         </div>
       </div>

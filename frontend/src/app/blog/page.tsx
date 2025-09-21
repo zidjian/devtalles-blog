@@ -1,14 +1,28 @@
 "use client";
 
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import ShinyText from "@/components/ShinyText";
 import { useState, useEffect } from "react";
-import { Search, ChevronLeft, ChevronRight } from "lucide-react";
+import {
+  Search,
+  ChevronLeft,
+  ChevronRight,
+  Calendar,
+  User,
+  Tag,
+} from "lucide-react";
 import { Input } from "@/components/ui/input";
 import Link from "next/link";
 import Image from "next/image";
 import { Skeleton } from "@/components/Skeleton";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+  SelectLabel,
+  SelectGroup,
+} from "@/components/ui/select";
 
 interface Post {
   id: number;
@@ -20,7 +34,6 @@ interface Post {
   image: string;
   category: string;
 }
-
 
 export default function BlogPage() {
   const [searchTerm, setSearchTerm] = useState("");
@@ -34,13 +47,15 @@ export default function BlogPage() {
 
   // API data state
   const [posts, setPosts] = useState<Post[]>([]);
-  const [categories, setCategories] = useState<{id: number, name: string}[]>([]);
+  const [categories, setCategories] = useState<{ id: number; name: string }[]>(
+    []
+  );
   const [totalPages, setTotalPages] = useState(0);
   const [totalPosts, setTotalPosts] = useState(0);
   const [loading, setLoading] = useState(true);
 
   const fetchCategories = async () => {
-    const response = await fetch('/api/categories');
+    const response = await fetch("/api/categories");
     const data = await response.json();
     setCategories(data.categories);
   };
@@ -51,7 +66,11 @@ export default function BlogPage() {
   }, []);
 
   // Fetch posts with filters
-  const fetchPosts = async (search: string, categoryId: number, page: number) => {
+  const fetchPosts = async (
+    search: string,
+    categoryId: number,
+    page: number
+  ) => {
     setLoading(true);
     try {
       const params = new URLSearchParams({
@@ -62,14 +81,14 @@ export default function BlogPage() {
       });
       const response = await fetch(`/api/posts?${params.toString()}`);
       if (!response.ok) {
-        throw new Error('Failed to fetch posts');
+        throw new Error("Failed to fetch posts");
       }
       const data = await response.json();
       setPosts(data.posts);
       setTotalPages(data.totalPages);
       setTotalPosts(data.totalPosts);
     } catch (error) {
-      console.error('Error fetching posts:', error);
+      console.error("Error fetching posts:", error);
       setPosts([]);
       setTotalPages(0);
       setTotalPosts(0);
@@ -111,224 +130,285 @@ export default function BlogPage() {
 
   return (
     <>
-
       {/* Contenido principal */}
-      <div className="relative max-w-5xl mx-auto z-10 min-h-screen pt-40 px-4 py-16 sm:px-6 lg:px-0">
+      <div className="relative max-w-6xl mx-auto z-10 min-h-screen pt-32 px-4 py-16 sm:px-6 lg:px-8">
         <div className="mx-auto max-w-7xl">
-          <div className="text-center mb-12">
-            <ShinyText text="Blog de Dev Talles" className="text-4xl font-bold text-white mb-4" />
-            <p className="text-lg text-white/80 max-w-2xl mx-auto">
-              Descubre artículos, tutoriales y experiencias compartidas por la comunidad de desarrolladores.
+          {/* Hero Section - Más minimalista */}
+          <div className="text-center mb-16">
+            {/* Badge similar a la landing */}
+            <div className="mb-8 inline-flex items-center rounded-full border border-white/20 bg-white/5 backdrop-blur-sm px-4 py-2 text-sm text-white/80">
+              <span className="mr-2">📚</span>
+              Blog de la comunidad
+            </div>
+
+            <h1 className="text-5xl font-bold text-white sm:text-6xl mb-6">
+              Explora, aprende y{" "}
+              <span className="bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent">
+                comparte
+              </span>
+            </h1>
+            <p className="text-lg text-white/70 max-w-2xl mx-auto leading-relaxed">
+              Descubre artículos y experiencias de la comunidad de Dev Talles
             </p>
           </div>
 
-
-          {/* Two-column layout */}
-          <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
-            {/* Main content - Left side */}
-            <div className="lg:col-span-3">
-              {/* Header with subtitle and count */}
-              <div className="mb-8">
-                <h2 className="text-2xl font-bold text-white mb-2">Todos los Artículos</h2>
-                <p className="text-white/60">
-                  {totalPosts} artículo{totalPosts !== 1 ? 's' : ''} encontrado{totalPosts !== 1 ? 's' : ''}
-                </p>
+          {/* Sección de Filtros Horizontal */}
+          <div className="mb-16">
+            <div className="bg-white/5 backdrop-blur-md border border-white/10 rounded-3xl p-8">
+              <div className="flex items-center gap-3 mb-8">
+                <div className="w-2 h-2 bg-gradient-to-r from-purple-400 to-pink-400 rounded-full"></div>
+                <h3 className="text-lg font-medium text-white">
+                  Filtros y Búsqueda
+                </h3>
               </div>
 
-              {/* Grid de posts */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-12">
-                {loading ? (
-                  // Skeleton loading state
-                  Array.from({ length: 6 }, (_, i) => (
-                    <div key={i} className="group">
-                      <div className="relative bg-gradient-to-br from-white/10 to-white/5 backdrop-blur-lg border border-white/20 rounded-2xl overflow-hidden shadow-2xl">
-                        {/* Image Container Skeleton */}
-                        <div className="relative aspect-[4/3] overflow-hidden">
-                          <Skeleton className="w-full h-full" />
-                        </div>
-                        {/* Content Skeleton */}
-                        <div className="p-6 space-y-4">
-                          <Skeleton className="h-6 w-3/4" />
-                          <Skeleton className="h-4 w-full" />
-                          <Skeleton className="h-4 w-2/3" />
-                          <div className="flex items-center justify-between">
-                            <div className="flex items-center space-x-2">
-                              <Skeleton className="w-6 h-6 rounded-full" />
-                              <Skeleton className="h-3 w-16" />
-                            </div>
-                            <Skeleton className="h-3 w-12" />
-                          </div>
-                          <Skeleton className="h-10 w-full rounded-xl" />
-                        </div>
-                      </div>
-                    </div>
-                  ))
-                ) : (
-                    posts.map((post) => (
-                      <div key={post.id} className="group">
-                        <div className="relative bg-gradient-to-br from-white/10 to-white/5 backdrop-blur-lg border border-white/20 rounded-2xl overflow-hidden shadow-2xl hover:shadow-purple-500/20 transition-all duration-500 hover:scale-[1.02] hover:-translate-y-2">
-                          {/* Image Container */}
-                          <div className="relative aspect-[4/3] overflow-hidden">
-                            <Image
-                              src={post.image}
-                              alt={post.title}
-                              width={400}
-                              height={300}
-                              className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
-                            />
-                            {/* Gradient Overlay */}
-                            <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent opacity-60 group-hover:opacity-40 transition-opacity duration-500" />
-
-                            {/* Hover Overlay */}
-                            <div className="absolute inset-0 bg-gradient-to-t from-purple-600/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
-                          </div>
-
-                          {/* Content */}
-                          <div className="p-6">
-                            <h3 className="text-xl font-bold text-white mb-3 line-clamp-2 group-hover:text-purple-200 transition-colors duration-300">
-                              {post.title}
-                            </h3>
-
-                            <p className="text-white/70 text-sm mb-4 line-clamp-3 leading-relaxed">
-                              {post.description}
-                            </p>
-
-                            {/* Meta Information */}
-                            <div className="flex items-center justify-between text-xs text-white/50 mb-4">
-                              <div className="flex items-center space-x-2">
-                                <div className="w-6 h-6 bg-gradient-to-r from-purple-400 to-pink-400 rounded-full flex items-center justify-center">
-                                  <span className="text-white text-xs font-bold">
-                                    {post.author.charAt(0).toUpperCase()}
-                                  </span>
-                                </div>
-                                <span>{post.author}</span>
-                              </div>
-                              <span>{new Date(post.date).toLocaleDateString()}</span>
-                            </div>
-
-                            {/* Action Button */}
-                            <Link href={`/blog/post/${post.slug}`}>
-                              <button className="cursor-pointer w-full py-3 px-4 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white font-medium rounded-xl transition-all duration-300 transform hover:scale-105 hover:shadow-lg group-hover:shadow-purple-500/25">
-                                <span className="flex items-center justify-center space-x-2">
-                                  <span>Leer más</span>
-                                  <svg className="w-4 h-4 transition-transform duration-300 group-hover:translate-x-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" />
-                                  </svg>
-                                </span>
-                              </button>
-                            </Link>
-                          </div>
-
-                          {/* Decorative Elements */}
-                          <div className="absolute top-0 right-0 w-20 h-20 bg-gradient-to-bl from-purple-500/10 to-transparent rounded-bl-full" />
-                          <div className="absolute bottom-0 left-0 w-16 h-16 bg-gradient-to-tr from-pink-500/10 to-transparent rounded-tr-full" />
-                        </div>
-                      </div>
-                    ))
-                  )
-                }
-              </div>
-
-              {/* Paginación */}
-              {totalPages > 1 && (
-                <div className="flex justify-center items-center gap-4">
-                  <Button
-                    variant="ghost"
-                    onClick={(e) => handlePageClick(currentPage - 1, e)}
-                    disabled={currentPage === 1}
-                    className="text-white hover:bg-white/10"
-                  >
-                    <ChevronLeft className="h-4 w-4" />
-                    Anterior
-                  </Button>
-
-                  <div className="flex gap-2">
-                    {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
-                      <Button
-                        key={page}
-                        variant={currentPage === page ? "default" : "ghost"}
-                        onClick={(e) => handlePageClick(page, e)}
-                        className={currentPage === page ? "bg-white/20 text-white" : "text-white/60 hover:bg-white/10"}
-                      >
-                        {page}
-                      </Button>
-                    ))}
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                {/* Search */}
+                <div className="space-y-2">
+                  <label className="text-sm font-medium text-white/70 mb-2">
+                    Buscar artículos
+                  </label>
+                  <div className="relative">
+                    <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-white/40 h-4 w-4" />
+                    <Input
+                      type="text"
+                      placeholder="Buscar..."
+                      value={tempSearchTerm}
+                      onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                        setTempSearchTerm(e.target.value)
+                      }
+                      className="pl-12 bg-white/5 border-white/10 rounded-2xl text-white placeholder:text-white/40 focus:bg-white/10 focus:border-white/20 transition-all duration-300"
+                    />
                   </div>
-
-                  <Button
-                    variant="ghost"
-                    onClick={(e) => handlePageClick(currentPage + 1, e)}
-                    disabled={currentPage === totalPages}
-                    className="text-white hover:bg-white/10"
-                  >
-                    Siguiente
-                    <ChevronRight className="h-4 w-4" />
-                  </Button>
                 </div>
-              )}
-            </div>
 
-            {/* Aside - Right side */}
-            <div className="lg:col-span-1">
-              <div className="sticky top-24">
-                <Card className="bg-black/20 backdrop-blur-sm border-white/10">
-                  <CardHeader>
-                    <CardTitle className="text-white flex items-center gap-2">
-                      <Search className="h-5 w-5" />
-                      Buscar y Filtrar
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent className="space-y-6">
-                    {/* Search */}
-                    <div className="relative">
-                      <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-white/50 h-4 w-4" />
-                      <Input
-                        type="text"
-                        placeholder="Buscar artículos..."
-                        value={tempSearchTerm}
-                        onChange={(e: React.ChangeEvent<HTMLInputElement>) => setTempSearchTerm(e.target.value)}
-                        className="pl-10"
-                      />
-                    </div>
-
-                    {/* Category Filter */}
-                    <div>
-                      <label className="block text-white mb-2">Categoría</label>
-                      <select
-                        value={tempCategory}
-                        onChange={(e: React.ChangeEvent<HTMLSelectElement>) => setTempCategory(parseInt(e.target.value))}
-                        className="w-full h-10 rounded-md border border-white/20 bg-white/5 px-3 py-2 text-sm text-white focus:outline-none focus:ring-2 focus:ring-white/20 focus:border-white/20"
-                      >
+                {/* Category Filter */}
+                <div className="space-y-2">
+                  <label className="text-sm font-medium text-white/70 mb-2">
+                    Categoría
+                  </label>
+                  <Select
+                    value={tempCategory.toString()}
+                    onValueChange={(value: string) =>
+                      setTempCategory(parseInt(value))
+                    }
+                  >
+                    <SelectTrigger className="w-full">
+                      <SelectValue placeholder="Selecciona una categoría" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectGroup>
+                        <SelectLabel>Categorías</SelectLabel>
                         {categories.map((category) => (
-                          <option key={category.id} value={category.id} className="bg-black text-white">
+                          <SelectItem
+                            key={category.id}
+                            value={category.id.toString()}
+                          >
                             {category.name}
-                          </option>
+                          </SelectItem>
                         ))}
-                      </select>
-                    </div>
+                      </SelectGroup>
+                    </SelectContent>
+                  </Select>
+                </div>
 
-                    {/* Filter Buttons */}
-                    <div className="flex gap-2">
-                      <Button
-                        onClick={applyFilters}
-                        className="flex-1 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white"
-                      >
-                        Filtrar
-                      </Button>
-                      <Button
-                        onClick={clearFilters}
-                        variant="outline"
-                        className="flex-1 text-white border-white/20 hover:bg-white/10"
-                      >
-                        Limpiar
-                      </Button>
-                    </div>
-
-                  </CardContent>
-                </Card>
+                {/* Filter Buttons */}
+                <div className="space-y-2">
+                  <label className="text-sm font-medium text-white/70 mb-2">
+                    Acciones
+                  </label>
+                  <div className="flex gap-3">
+                    <Button
+                      onClick={applyFilters}
+                      className="flex-1 bg-gradient-to-r from-purple-500/20 to-pink-500/20 hover:from-purple-500/30 hover:to-pink-500/30 text-white border border-white/10 rounded-2xl transition-all duration-300"
+                    >
+                      Aplicar
+                    </Button>
+                    <Button
+                      onClick={clearFilters}
+                      variant="ghost"
+                      className="px-4 text-white/70 hover:text-white hover:bg-white/10 rounded-2xl transition-all duration-300"
+                    >
+                      Limpiar
+                    </Button>
+                  </div>
+                </div>
               </div>
             </div>
           </div>
+
+          {/* Stats minimalistas */}
+          <div className="mb-12 flex items-center justify-between">
+            <div className="flex items-center gap-2 text-white/60">
+              <div className="w-2 h-2 bg-gradient-to-r from-purple-400 to-pink-400 rounded-full"></div>
+              <span className="text-sm">
+                {totalPosts} artículo{totalPosts !== 1 ? "s" : ""} disponible
+                {totalPosts !== 1 ? "s" : ""}
+              </span>
+            </div>
+            <div className="flex items-center gap-6 text-white/50 text-sm">
+              <div className="flex items-center gap-2">
+                <span>Categorías:</span>
+                <span className="text-white font-medium">
+                  {categories.length}
+                </span>
+              </div>
+            </div>
+          </div>
+
+          {/* Grid más espacioso y elegante */}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mb-16">
+            {loading
+              ? // Skeleton loading state - Más elegante
+                Array.from({ length: 6 }, (_, i) => (
+                  <div key={i} className="group">
+                    <div className="relative bg-white/5 backdrop-blur-md border border-white/10 rounded-3xl overflow-hidden hover:bg-white/10 transition-all duration-500">
+                      {/* Image Container Skeleton */}
+                      <div className="relative aspect-[16/10] overflow-hidden">
+                        <Skeleton className="w-full h-full" />
+                      </div>
+                      {/* Content Skeleton */}
+                      <div className="p-8 space-y-4">
+                        <Skeleton className="h-7 w-3/4" />
+                        <Skeleton className="h-4 w-full" />
+                        <Skeleton className="h-4 w-4/5" />
+                        <div className="flex items-center gap-4 pt-4">
+                          <div className="flex items-center gap-2">
+                            <Skeleton className="w-8 h-8 rounded-full" />
+                            <Skeleton className="h-3 w-20" />
+                          </div>
+                          <Skeleton className="h-3 w-16" />
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                ))
+              : posts.map((post) => (
+                  <Link
+                    key={post.id}
+                    href={`/blog/post/${post.slug}`}
+                    className="group block"
+                  >
+                    <article className="relative bg-white/5 backdrop-blur-md border border-white/10 rounded-3xl overflow-hidden hover:bg-white/10 hover:border-white/20 transition-all duration-500 hover:-translate-y-1">
+                      {/* Image Container - Más elegante */}
+                      <div className="relative aspect-[16/10] overflow-hidden">
+                        <Image
+                          src={post.image}
+                          alt={post.title}
+                          width={500}
+                          height={312}
+                          className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
+                        />
+                        {/* Overlay sutil */}
+                        <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent" />
+
+                        {/* Category badge */}
+                        <div className="absolute top-4 left-4">
+                          <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-medium bg-white/10 backdrop-blur-sm border border-white/20 text-white">
+                            <Tag className="w-3 h-3" />
+                            {post.category}
+                          </span>
+                        </div>
+                      </div>
+
+                      {/* Content - Más espacioso y limpio */}
+                      <div className="p-8">
+                        <h3 className="text-xl font-semibold text-white mb-3 line-clamp-2 leading-tight group-hover:text-purple-200 transition-colors duration-300">
+                          {post.title}
+                        </h3>
+
+                        <p className="text-white/60 text-sm mb-6 line-clamp-2 leading-relaxed">
+                          {post.description}
+                        </p>
+
+                        {/* Meta Information - Más elegante */}
+                        <div className="flex items-center gap-4 text-xs text-white/50">
+                          <div className="flex items-center gap-2">
+                            <div className="w-8 h-8 bg-gradient-to-br from-purple-400/20 to-pink-400/20 border border-white/10 rounded-full flex items-center justify-center backdrop-blur-sm">
+                              <User className="w-4 h-4 text-white/70" />
+                            </div>
+                            <span className="font-medium">{post.author}</span>
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <Calendar className="w-3 h-3" />
+                            <span>
+                              {new Date(post.date).toLocaleDateString("es-ES", {
+                                year: "numeric",
+                                month: "short",
+                                day: "numeric",
+                              })}
+                            </span>
+                          </div>
+                        </div>
+
+                        {/* Read more indicator - Más sutil */}
+                        <div className="mt-6 flex items-center gap-2 text-sm text-purple-300 group-hover:text-purple-200 transition-colors duration-300">
+                          <span>Leer artículo</span>
+                          <ChevronRight className="w-4 h-4 transition-transform duration-300 group-hover:translate-x-1" />
+                        </div>
+                      </div>
+
+                      {/* Decoración sutil */}
+                      <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-bl from-purple-500/5 to-transparent rounded-bl-full" />
+                    </article>
+                  </Link>
+                ))}
+          </div>
+
+          {/* Paginación más elegante */}
+          {totalPages > 1 && (
+            <div className="flex justify-center items-center gap-3">
+              <Button
+                variant="ghost"
+                onClick={(e) => handlePageClick(currentPage - 1, e)}
+                disabled={currentPage === 1}
+                className="text-white/70 hover:text-white hover:bg-white/10 rounded-full px-4 py-2 disabled:opacity-30"
+              >
+                <ChevronLeft className="h-4 w-4 mr-1" />
+                Anterior
+              </Button>
+
+              <div className="flex gap-2">
+                {Array.from({ length: Math.min(totalPages, 7) }, (_, i) => {
+                  let page;
+                  if (totalPages <= 7) {
+                    page = i + 1;
+                  } else if (currentPage <= 4) {
+                    page = i + 1;
+                  } else if (currentPage >= totalPages - 3) {
+                    page = totalPages - 6 + i;
+                  } else {
+                    page = currentPage - 3 + i;
+                  }
+
+                  return (
+                    <Button
+                      key={page}
+                      variant="ghost"
+                      onClick={(e) => handlePageClick(page, e)}
+                      className={
+                        currentPage === page
+                          ? "bg-gradient-to-r from-purple-500/20 to-pink-500/20 border border-white/20 text-white rounded-full w-10 h-10 p-0"
+                          : "text-white/60 hover:text-white hover:bg-white/10 rounded-full w-10 h-10 p-0"
+                      }
+                    >
+                      {page}
+                    </Button>
+                  );
+                })}
+              </div>
+
+              <Button
+                variant="ghost"
+                onClick={(e) => handlePageClick(currentPage + 1, e)}
+                disabled={currentPage === totalPages}
+                className="text-white/70 hover:text-white hover:bg-white/10 rounded-full px-4 py-2 disabled:opacity-30"
+              >
+                Siguiente
+                <ChevronRight className="h-4 w-4 ml-1" />
+              </Button>
+            </div>
+          )}
         </div>
       </div>
     </>
