@@ -21,18 +21,14 @@ jobs:
         run: cd backend && npm install prisma --save-dev
       - name: Run Prisma Migrate
         run: cd backend && npx prisma migrate deploy
-
-      - name: Install Prisma CLI
-        run: cd backend && npm install prisma --save-dev
-
-      - name: Run Prisma Migrate
-        run: cd backend && npx prisma migrate deploy
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
 
       - name: Zip app
         run: cd backend && zip -r ../app.zip .
 
       - name: Deploy to Elastic Beanstalk
-        run: pip install awsebcli && cd backend && eb init devtalles --region us-east-1 --platform "Node.js" && eb use nestjs-env && eb deploy
+        run: pip install awsebcli && cd backend && eb init devtalles --region us-east-1 --platform "Node.js" && eb use nestjs-env && eb setenv DATABASE_URL=${{ secrets.DATABASE_URL }} JWT_SECRET=${{ secrets.JWT_SECRET }} PORT=${{ secrets.PORT }} && eb deploy
         env:
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
