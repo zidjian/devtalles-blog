@@ -1,7 +1,7 @@
-import { Button } from "@/components/ui/button";
-import ShinyText from "@/components/ShinyText";
-import { ArrowLeft } from "lucide-react";
-import Link from "next/link";
+import { Button } from '@/components/ui/button';
+import ShinyText from '@/components/ShinyText';
+import { ArrowLeft } from 'lucide-react';
+import Link from 'next/link';
 
 export default function NotFound() {
     return (
@@ -22,8 +22,7 @@ export default function NotFound() {
 
                 <Button
                     asChild
-                    className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white font-semibold py-3 px-6 rounded-lg transition-all duration-300 transform hover:scale-105 hover:shadow-lg"
-                >
+                    className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white font-semibold py-3 px-6 rounded-lg transition-all duration-300 transform hover:scale-105 hover:shadow-lg">
                     <Link href="/blog" className="flex items-center gap-2">
                         <ArrowLeft size={20} />
                         Volver al Blog

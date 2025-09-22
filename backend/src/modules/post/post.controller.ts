@@ -7,7 +7,9 @@ import {
   Post,
   Put,
   Query,
+  Req,
   UploadedFile,
+  UseGuards,
   UseInterceptors,
 } from '@nestjs/common';
 import { PostService } from './post.service';
@@ -16,6 +18,7 @@ import { CreatePostDto } from './dto/create-post.dto';
 import { UpdatePostDto } from './dto/update-post.dto';
 import { Auth } from 'src/auth/decorators/auth.decorator';
 import { GetUser } from 'src/auth/decorators/get-user.decorator';
+import { OptionalJwtAuthGuard } from 'src/auth/guards/optional-jwt.guard';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { FilterPostDto } from './dto/filter-post.dto';
 
@@ -23,15 +26,24 @@ import { FilterPostDto } from './dto/filter-post.dto';
 export class PostController {
   constructor(private readonly postService: PostService) {}
 
-  @Auth() // Todo manage roles
+  @Auth()
+  @Get('statistics')
+  async getStatistics(
+    @Query('startDate') startDate?: string,
+    @Query('endDate') endDate?: string,
+  ) {
+    return this.postService.getStatistics(startDate, endDate);
+  }
+
+  @Auth()
   @Post()
-  @UseInterceptors(FileInterceptor('file'))
+  @UseInterceptors(FileInterceptor('image'))
   async createPost(
     @GetUser('id') userId: number,
     @Body() createPostDto: CreatePostDto,
-    @UploadedFile() file?: Express.Multer.File,
+    @UploadedFile() image?: Express.Multer.File,
   ) {
-    return this.postService.createPost(userId, createPostDto, file);
+    return this.postService.createPost(userId, createPostDto, image);
   }
 
   @Get()
@@ -39,7 +51,7 @@ export class PostController {
     return this.postService.getAllPosts(filterPostDto);
   }
 
-  @Auth() // Todo manage roles
+  @Auth()
   @Get('user')
   async getAllPostsByUserId(
     @GetUser('id') userId: number,
@@ -53,30 +65,37 @@ export class PostController {
     return this.postService.getPostById(Number(id));
   }
 
+  @UseGuards(OptionalJwtAuthGuard)
   @Get(':slug')
-  async getPostBySlug(@Param('slug') slug: string) {
-    return this.postService.getPostBySlug(slug);
+  async getPostBySlug(@Param('slug') slug: string, @Req() req: any) {
+    const userId = req.user?.id;
+    return this.postService.getPostBySlug(userId, slug);
   }
 
-  @Auth() // Todo manage roles
+  @Auth()
   @Put(':id')
-  @UseInterceptors(FileInterceptor('file'))
+  @UseInterceptors(FileInterceptor('image'))
   async updatePost(
     @Param('id') id: number,
     @GetUser('id') userId: number,
     @Body() updatePostDto: UpdatePostDto,
-    @UploadedFile() file?: Express.Multer.File,
+    @UploadedFile() image?: Express.Multer.File,
   ) {
-    return this.postService.updatePost(Number(id), userId, updatePostDto, file);
+    return this.postService.updatePost(
+      Number(id),
+      userId,
+      updatePostDto,
+      image,
+    );
   }
 
-  @Auth() // Todo manage roles
+  @Auth()
   @Delete(':postId')
   async deletePost(@Param('postId') postId: number) {
     return this.postService.deletePost(postId);
   }
 
-  @Auth() // Todo manage roles
+  @Auth()
   @Post('like/:postId')
   async likePost(
     @GetUser('id') userId: number,
@@ -85,7 +104,7 @@ export class PostController {
     return this.postService.likePost(userId, postId);
   }
 
-  @Auth() // Todo manage roles
+  @Auth()
   @Post('unlike/:postId')
   async unlikePost(
     @GetUser('id') userId: number,
@@ -94,8 +113,8 @@ export class PostController {
     return this.postService.unlikePost(userId, postId);
   }
 
-  @Auth() // Todo manage roles
-  @Get('liked')
+  @Auth()
+  @Get('likes/liked')
   async getLikedPostsByUserId(
     @GetUser('id') userId: number,
     @Query() paginationDto: PaginationDto,
@@ -104,14 +123,5 @@ export class PostController {
       Number(userId),
       paginationDto,
     );
-  }
-
-  @Auth() // Todo manage roles
-  @Get('statistics')
-  async getStatistics(
-    @Query('startDate') startDate?: string,
-    @Query('endDate') endDate?: string,
-  ) {
-    return this.postService.getStatistics(startDate, endDate);
   }
 }

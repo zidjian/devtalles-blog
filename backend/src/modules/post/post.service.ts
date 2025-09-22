@@ -52,7 +52,7 @@ export class PostService {
   async createPost(
     userId: number,
     createPostDto: CreatePostDto,
-    file?: Express.Multer.File,
+    image?: Express.Multer.File,
   ) {
     const { title, slug, content, categoryIds } = createPostDto;
 
@@ -86,8 +86,8 @@ export class PostService {
       throw new NotFoundException('Some categories not found');
     }
 
-    if (file) {
-      result = await this.cloudinaryService.uploadFile(file, 'post-images');
+    if (image) {
+      result = await this.cloudinaryService.uploadFile(image, 'post-images');
 
       if (!result) {
         throw new BadRequestException('Failed to upload image');
@@ -103,6 +103,7 @@ export class PostService {
           content,
           userId,
           image: result?.secure_url,
+          description: content.substring(0, 160), // Add description field
         },
       });
 
@@ -117,7 +118,7 @@ export class PostService {
     });
   }
 
-  async getPostBySlug(slug: string) {
+  async getPostBySlug(userId: number | undefined, slug: string) {
     const post = await this.prisma.post.findUnique({
       where: { slug },
       include: {
@@ -160,10 +161,42 @@ export class PostService {
       limit: 5,
     });
 
+    // check if user liked the post
+    let liked = false;
+    if (userId) {
+      const like = await this.prisma.like.findUnique({
+        where: {
+          userId_postId: {
+            userId: +userId,
+            postId: +post.id,
+          },
+        },
+      });
+      liked = like !== null;
+    }
+
+    // get related posts
+    const categoryIds = categories.map((c) => c.id);
+    let related: { slug: string; title: string; image: string | null }[] = [];
+
+    if (categoryIds.length > 0) {
+      related = await this.prisma.post.findMany({
+        where: {
+          id: { not: post.id },
+          categories: { some: { categoryId: { in: categoryIds } } },
+        },
+        select: { slug: true, title: true, image: true },
+        orderBy: { createdAt: 'desc' },
+        take: 3,
+      });
+    }
+
     return {
       ...post,
       comments,
       categories,
+      liked,
+      related,
     };
   }
 
@@ -260,7 +293,7 @@ export class PostService {
     id: number,
     userId: number,
     updatePostDto: any,
-    file?: Express.Multer.File,
+    image?: Express.Multer.File,
   ) {
     const { title, slug, content, categoryIds } = updatePostDto;
 
@@ -312,8 +345,8 @@ export class PostService {
     }
 
     let result: any;
-    if (file) {
-      result = await this.cloudinaryService.uploadFile(file, 'post-images');
+    if (image) {
+      result = await this.cloudinaryService.uploadFile(image, 'post-images');
       if (!result) {
         throw new BadRequestException('Failed to upload image');
       }
@@ -369,12 +402,12 @@ export class PostService {
   }
 
   async likePost(userId: number, postId: number) {
-    const post = await this.prisma.post.findUnique({ where: { id: postId } });
+    const post = await this.prisma.post.findUnique({ where: { id: +postId } });
     if (!post) throw new NotFoundException('Post not found');
 
     const existingLike = await this.prisma.like.findUnique({
       where: {
-        userId_postId: { userId, postId },
+        userId_postId: { userId: +userId, postId: +postId },
       },
     });
 
@@ -383,14 +416,14 @@ export class PostService {
     }
 
     return this.prisma.like.create({
-      data: { userId, postId },
+      data: { userId: +userId, postId: +postId },
     });
   }
 
   async unlikePost(userId: number, postId: number) {
     const existingLike = await this.prisma.like.findUnique({
       where: {
-        userId_postId: { userId, postId },
+        userId_postId: { userId: +userId, postId: +postId },
       },
     });
 
@@ -400,7 +433,7 @@ export class PostService {
 
     return this.prisma.like.delete({
       where: {
-        userId_postId: { userId, postId },
+        userId_postId: { userId: +userId, postId: +postId },
       },
     });
   }

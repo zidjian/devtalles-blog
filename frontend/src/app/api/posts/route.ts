@@ -1,27 +1,27 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextRequest, NextResponse } from 'next/server';
 
 // Mock data
 const categories = [
-  { id: 1, name: "All" },
-  { id: 2, name: "React" },
-  { id: 3, name: "Next.js" },
-  { id: 4, name: "Backend" },
-  { id: 5, name: "TypeScript" },
-  { id: 6, name: "CSS" },
+    { id: 1, name: 'All' },
+    { id: 2, name: 'React' },
+    { id: 3, name: 'Next.js' },
+    { id: 4, name: 'Backend' },
+    { id: 5, name: 'TypeScript' },
+    { id: 6, name: 'CSS' },
 ];
 
 const blogPosts = [
-  {
-    id: 1,
-    title: "Introducción a React Hooks",
-    slug: "introduccion-a-react-hooks",
-    description:
-      "Aprende los fundamentos de los hooks en React y cómo mejorar tu código.",
-    date: "2023-10-01",
-    author: "Dev Talles",
-    image: "/devi1.png",
-    categories: ["React"],
-    content: `
+    {
+        id: 1,
+        title: 'Introducción a React Hooks',
+        slug: 'introduccion-a-react-hooks',
+        description:
+            'Aprende los fundamentos de los hooks en React y cómo mejorar tu código.',
+        date: '2023-10-01',
+        author: 'Dev Talles',
+        image: '/devi1.png',
+        categories: ['React'],
+        content: `
     <p>Los React Hooks son una característica introducida en React 16.8 que permiten usar estado y otras características de React en componentes funcionales sin necesidad de convertirlos a componentes de clase.</p>
 
     <h2>¿Qué son los Hooks?</h2>
@@ -44,18 +44,18 @@ function increment() {
 
     <p>Este es solo el comienzo. Los Hooks abren un mundo de posibilidades para escribir componentes más limpios y reutilizables en React.</p>
   `,
-  },
-  {
-    id: 2,
-    title: "Optimización de Performance en Next.js",
-    slug: "optimizacion-de-performance-en-nextjs",
-    description:
-      "Técnicas avanzadas para mejorar el rendimiento de tus aplicaciones Next.js.",
-    date: "2023-09-15",
-    author: "Dev Talles",
-    image: "/devi2.png",
-    categories: ["Next.js"],
-    content: `
+    },
+    {
+        id: 2,
+        title: 'Optimización de Performance en Next.js',
+        slug: 'optimizacion-de-performance-en-nextjs',
+        description:
+            'Técnicas avanzadas para mejorar el rendimiento de tus aplicaciones Next.js.',
+        date: '2023-09-15',
+        author: 'Dev Talles',
+        image: '/devi2.png',
+        categories: ['Next.js'],
+        content: `
     <p>Next.js ofrece varias técnicas de optimización que pueden mejorar significativamente el rendimiento de tus aplicaciones web.</p>
 
     <h2>Image Optimization</h2>
@@ -67,18 +67,18 @@ function increment() {
     <h2>Static Generation vs Server-Side Rendering</h2>
     <p>Elige la estrategia de renderizado correcta según las necesidades de tu aplicación: Static Generation para contenido estático o Server-Side Rendering para contenido dinámico.</p>
   `,
-  },
-  {
-    id: 3,
-    title: "Diseño de APIs RESTful",
-    slug: "diseno-de-apis-restful",
-    description:
-      "Mejores prácticas para diseñar APIs que sean escalables y mantenibles.",
-    date: "2023-08-30",
-    author: "Dev Talles",
-    image: "/devi3.png",
-    categories: ["Backend"],
-    content: `
+    },
+    {
+        id: 3,
+        title: 'Diseño de APIs RESTful',
+        slug: 'diseno-de-apis-restful',
+        description:
+            'Mejores prácticas para diseñar APIs que sean escalables y mantenibles.',
+        date: '2023-08-30',
+        author: 'Dev Talles',
+        image: '/devi3.png',
+        categories: ['Backend'],
+        content: `
     <p>Diseñar una API RESTful requiere seguir ciertos principios y mejores prácticas para asegurar que sea escalable y mantenible.</p>
 
     <h2>Principios REST</h2>
@@ -91,18 +91,18 @@ function increment() {
     <h2>Mejores Prácticas</h2>
     <p>Usa sustantivos en lugar de verbos en las URLs, implementa versioning adecuado, y proporciona documentación clara con ejemplos.</p>
   `,
-  },
-  {
-    id: 4,
-    title: "Introducción a TypeScript",
-    slug: "introduccion-a-typescript",
-    description:
-      "Aprende los fundamentos de TypeScript para mejorar tu desarrollo en JavaScript.",
-    date: "2023-08-15",
-    author: "Dev Talles",
-    image: "/devi1.png",
-    categories: ["TypeScript"],
-    content: `
+    },
+    {
+        id: 4,
+        title: 'Introducción a TypeScript',
+        slug: 'introduccion-a-typescript',
+        description:
+            'Aprende los fundamentos de TypeScript para mejorar tu desarrollo en JavaScript.',
+        date: '2023-08-15',
+        author: 'Dev Talles',
+        image: '/devi1.png',
+        categories: ['TypeScript'],
+        content: `
     <p>TypeScript es un superset de JavaScript que añade tipado estático opcional y otras características avanzadas.</p>
 
     <h2>¿Por qué TypeScript?</h2>
@@ -119,18 +119,18 @@ function increment() {
     <h2>Interfaces</h2>
     <p>Las interfaces permiten definir la estructura de objetos, asegurando consistencia en tu código.</p>
   `,
-  },
-  {
-    id: 5,
-    title: "Tailwind CSS Avanzado",
-    slug: "tailwind-css-avanzado",
-    description:
-      "Técnicas avanzadas para crear diseños responsivos con Tailwind CSS.",
-    date: "2023-07-30",
-    author: "Dev Talles",
-    image: "/devi2.png",
-    categories: ["CSS"],
-    content: `
+    },
+    {
+        id: 5,
+        title: 'Tailwind CSS Avanzado',
+        slug: 'tailwind-css-avanzado',
+        description:
+            'Técnicas avanzadas para crear diseños responsivos con Tailwind CSS.',
+        date: '2023-07-30',
+        author: 'Dev Talles',
+        image: '/devi2.png',
+        categories: ['CSS'],
+        content: `
     <p>Tailwind CSS es un framework de CSS utility-first que permite construir diseños rápidamente sin salir del HTML.</p>
 
     <h2>Responsive Design</h2>
@@ -142,17 +142,17 @@ function increment() {
     <h2>Configuración avanzada</h2>
     <p>Personaliza los colores, fuentes y espaciados de Tailwind para que se ajuste a tu marca.</p>
   `,
-  },
-  {
-    id: 6,
-    title: "Node.js y Express",
-    slug: "nodejs-y-express",
-    description: "Construye APIs robustas con Node.js y Express.",
-    date: "2023-07-15",
-    author: "Dev Talles",
-    image: "/devi3.png",
-    categories: ["Backend"],
-    content: `
+    },
+    {
+        id: 6,
+        title: 'Node.js y Express',
+        slug: 'nodejs-y-express',
+        description: 'Construye APIs robustas con Node.js y Express.',
+        date: '2023-07-15',
+        author: 'Dev Talles',
+        image: '/devi3.png',
+        categories: ['Backend'],
+        content: `
     <p>Node.js y Express forman una combinación poderosa para construir APIs backend escalables.</p>
 
     <h2>¿Qué es Express?</h2>
@@ -164,18 +164,18 @@ function increment() {
     <h2>Manejo de errores</h2>
     <p>Implementa estrategias efectivas para manejar errores en tu API.</p>
   `,
-  },
-  {
-    id: 7,
-    title: "Testing en React con Jest",
-    slug: "testing-en-react-con-jest",
-    description:
-      "Aprende a escribir tests efectivos para tus componentes de React usando Jest.",
-    date: "2023-07-01",
-    author: "Dev Talles",
-    image: "/devi1.png",
-    categories: ["React"],
-    content: `
+    },
+    {
+        id: 7,
+        title: 'Testing en React con Jest',
+        slug: 'testing-en-react-con-jest',
+        description:
+            'Aprende a escribir tests efectivos para tus componentes de React usando Jest.',
+        date: '2023-07-01',
+        author: 'Dev Talles',
+        image: '/devi1.png',
+        categories: ['React'],
+        content: `
     <p>Jest es un framework de testing desarrollado por Facebook que funciona perfectamente con React.</p>
 
     <h2>¿Por qué testear?</h2>
@@ -187,18 +187,18 @@ function increment() {
     <h2>Cobertura de código</h2>
     <p>Mide qué porcentaje de tu código está cubierto por tests para asegurar calidad.</p>
   `,
-  },
-  {
-    id: 8,
-    title: "Animaciones con Framer Motion",
-    slug: "animaciones-con-framer-motion",
-    description:
-      "Crea animaciones fluidas y atractivas en tus proyectos React.",
-    date: "2023-06-15",
-    author: "Dev Talles",
-    image: "/devi2.png",
-    categories: ["React"],
-    content: `
+    },
+    {
+        id: 8,
+        title: 'Animaciones con Framer Motion',
+        slug: 'animaciones-con-framer-motion',
+        description:
+            'Crea animaciones fluidas y atractivas en tus proyectos React.',
+        date: '2023-06-15',
+        author: 'Dev Talles',
+        image: '/devi2.png',
+        categories: ['React'],
+        content: `
     <p>Framer Motion es una librería de animaciones para React que hace fácil crear interfaces dinámicas.</p>
 
     <h2>Animaciones básicas</h2>
@@ -210,18 +210,18 @@ function increment() {
     <h2>Animaciones complejas</h2>
     <p>Crea secuencias de animaciones y transiciones entre estados.</p>
   `,
-  },
-  {
-    id: 9,
-    title: "Autenticación en NextAuth.js",
-    slug: "autenticacion-en-nextauthjs",
-    description:
-      "Implementa autenticación segura y moderna en tus apps Next.js.",
-    date: "2023-06-01",
-    author: "Dev Talles",
-    image: "/devi3.png",
-    categories: ["Next.js"],
-    content: `
+    },
+    {
+        id: 9,
+        title: 'Autenticación en NextAuth.js',
+        slug: 'autenticacion-en-nextauthjs',
+        description:
+            'Implementa autenticación segura y moderna en tus apps Next.js.',
+        date: '2023-06-01',
+        author: 'Dev Talles',
+        image: '/devi3.png',
+        categories: ['Next.js'],
+        content: `
     <p>NextAuth.js simplifica la implementación de autenticación en aplicaciones Next.js.</p>
 
     <h2>Proveedores de autenticación</h2>
@@ -233,17 +233,18 @@ function increment() {
     <h2>Protección de rutas</h2>
     <p>Protege páginas y APIs con middleware de autenticación.</p>
   `,
-  },
-  {
-    id: 10,
-    title: "Consumo de APIs con SWR",
-    slug: "consumo-de-apis-con-swr",
-    description: "Optimiza el consumo de datos en React y Next.js usando SWR.",
-    date: "2023-05-15",
-    author: "Dev Talles",
-    image: "/devi1.png",
-    categories: ["React"],
-    content: `
+    },
+    {
+        id: 10,
+        title: 'Consumo de APIs con SWR',
+        slug: 'consumo-de-apis-con-swr',
+        description:
+            'Optimiza el consumo de datos en React y Next.js usando SWR.',
+        date: '2023-05-15',
+        author: 'Dev Talles',
+        image: '/devi1.png',
+        categories: ['React'],
+        content: `
     <p>SWR es una librería de React para fetching de datos que optimiza el rendimiento y la experiencia de usuario.</p>
 
     <h2>¿Qué es SWR?</h2>
@@ -255,18 +256,18 @@ function increment() {
     <h2>Manejo de errores y loading</h2>
     <p>Maneja estados de carga y errores de manera elegante.</p>
   `,
-  },
-  {
-    id: 11,
-    title: "Deploy en Vercel",
-    slug: "deploy-en-vercel",
-    description:
-      "Guía paso a paso para desplegar tus proyectos Next.js en Vercel.",
-    date: "2023-05-01",
-    author: "Dev Talles",
-    image: "/devi2.png",
-    categories: ["Next.js"],
-    content: `
+    },
+    {
+        id: 11,
+        title: 'Deploy en Vercel',
+        slug: 'deploy-en-vercel',
+        description:
+            'Guía paso a paso para desplegar tus proyectos Next.js en Vercel.',
+        date: '2023-05-01',
+        author: 'Dev Talles',
+        image: '/devi2.png',
+        categories: ['Next.js'],
+        content: `
     <p>Vercel es una plataforma de deployment optimizada para aplicaciones Next.js.</p>
 
     <h2>Deploy automático</h2>
@@ -278,18 +279,18 @@ function increment() {
     <h2>Domains personalizados</h2>
     <p>Asigna dominios personalizados a tus aplicaciones desplegadas.</p>
   `,
-  },
-  {
-    id: 12,
-    title: "Gestión de estado con Redux Toolkit",
-    slug: "gestion-de-estado-con-redux-toolkit",
-    description:
-      "Simplifica la gestión de estado en aplicaciones React modernas.",
-    date: "2023-04-15",
-    author: "Dev Talles",
-    image: "/devi3.png",
-    categories: ["React"],
-    content: `
+    },
+    {
+        id: 12,
+        title: 'Gestión de estado con Redux Toolkit',
+        slug: 'gestion-de-estado-con-redux-toolkit',
+        description:
+            'Simplifica la gestión de estado en aplicaciones React modernas.',
+        date: '2023-04-15',
+        author: 'Dev Talles',
+        image: '/devi3.png',
+        categories: ['React'],
+        content: `
     <p>Redux Toolkit es la forma recomendada de usar Redux en aplicaciones modernas.</p>
 
     <h2>¿Por qué Redux Toolkit?</h2>
@@ -301,18 +302,18 @@ function increment() {
     <h2>Async thunks</h2>
     <p>Maneja operaciones asíncronas con createAsyncThunk.</p>
   `,
-  },
-  {
-    id: 13,
-    title: "SEO en Next.js",
-    slug: "seo-en-nextjs",
-    description:
-      "Mejora el posicionamiento de tus páginas con buenas prácticas de SEO.",
-    date: "2023-04-01",
-    author: "Dev Talles",
-    image: "/devi1.png",
-    categories: ["Next.js"],
-    content: `
+    },
+    {
+        id: 13,
+        title: 'SEO en Next.js',
+        slug: 'seo-en-nextjs',
+        description:
+            'Mejora el posicionamiento de tus páginas con buenas prácticas de SEO.',
+        date: '2023-04-01',
+        author: 'Dev Talles',
+        image: '/devi1.png',
+        categories: ['Next.js'],
+        content: `
     <p>Next.js proporciona herramientas poderosas para optimizar el SEO de tus aplicaciones.</p>
 
     <h2>Meta tags</h2>
@@ -324,17 +325,18 @@ function increment() {
     <h2>Structured Data</h2>
     <p>Añade datos estructurados para que los motores de búsqueda entiendan mejor tu contenido.</p>
   `,
-  },
-  {
-    id: 14,
-    title: "Formularios con React Hook Form",
-    slug: "formularios-con-react-hook-form",
-    description: "Crea formularios robustos y fáciles de mantener en React.",
-    date: "2023-03-15",
-    author: "Dev Talles",
-    image: "/devi2.png",
-    categories: ["React"],
-    content: `
+    },
+    {
+        id: 14,
+        title: 'Formularios con React Hook Form',
+        slug: 'formularios-con-react-hook-form',
+        description:
+            'Crea formularios robustos y fáciles de mantener en React.',
+        date: '2023-03-15',
+        author: 'Dev Talles',
+        image: '/devi2.png',
+        categories: ['React'],
+        content: `
     <p>React Hook Form es una librería performante para manejar formularios en React.</p>
 
     <h2>¿Por qué React Hook Form?</h2>
@@ -346,17 +348,18 @@ function increment() {
     <h2>Campos controlados</h2>
     <p>Maneja inputs de diferentes tipos de manera eficiente.</p>
   `,
-  },
-  {
-    id: 15,
-    title: "Estilos con Styled Components",
-    slug: "estilos-con-styled-components",
-    description: "Utiliza Styled Components para estilos dinámicos en React.",
-    date: "2023-03-01",
-    author: "Dev Talles",
-    image: "/devi3.png",
-    categories: ["CSS"],
-    content: `
+    },
+    {
+        id: 15,
+        title: 'Estilos con Styled Components',
+        slug: 'estilos-con-styled-components',
+        description:
+            'Utiliza Styled Components para estilos dinámicos en React.',
+        date: '2023-03-01',
+        author: 'Dev Talles',
+        image: '/devi3.png',
+        categories: ['CSS'],
+        content: `
     <p>Styled Components permite escribir CSS en JavaScript para crear componentes estilizados.</p>
 
     <h2>¿Qué son Styled Components?</h2>
@@ -368,131 +371,63 @@ function increment() {
     <h2>Temas globales</h2>
     <p>Crea temas consistentes para toda tu aplicación.</p>
   `,
-  },
+    },
 ];
 
 export async function GET(request: NextRequest) {
-  try {
     const { searchParams } = new URL(request.url);
-    
-    // Build query string for backend
-    const backendParams = new URLSearchParams();
-    
-    // Add search parameter if provided
-    const search = searchParams.get("search");
-    if (search) {
-      backendParams.append("title", search);
-    }
-    
-    // Add categoryId parameter if provided and not 0 (All)
-    const categoryId = searchParams.get("categoryId");
-    if (categoryId && categoryId !== "0") {
-      backendParams.append("categoryId", categoryId);
-    }
-    
-    // Add pagination parameters
-    const page = searchParams.get("page") || "1";
-    const limit = searchParams.get("limit") || "10";
-    backendParams.append("page", page);
-    backendParams.append("limit", limit);
+    const search = searchParams.get('search') || '';
+    const categoryId = parseInt(searchParams.get('categoryId') || '1');
+    const page = parseInt(searchParams.get('page') || '1');
+    const limit = parseInt(searchParams.get('limit') || '10');
 
-    // Forward the request to the backend
-    const backendResponse = await fetch(
-      `${process.env.BACKEND_URL || "http://localhost:3000"}/api/post?${backendParams.toString()}`,
-      {
-        method: "GET",
-        headers: {
-          "Content-Type": "application/json",
-        },
-      }
-    );
+    const categoryName =
+        categories.find(cat => cat.id === categoryId)?.name || 'All';
 
-    if (!backendResponse.ok) {
-      let errorData;
-      const contentType = backendResponse.headers.get("content-type");
-
-      if (contentType && contentType.includes("application/json")) {
-        errorData = await backendResponse.json();
-      } else {
-        const errorText = await backendResponse.text();
-        errorData = {
-          error: "Backend error",
-          message: errorText.length > 500 ? "Internal server error" : errorText,
-          status: backendResponse.status,
-        };
-      }
-
-      return NextResponse.json(errorData, { status: backendResponse.status });
-    }
-
-    const result = await backendResponse.json();
-    
-    // Transform the response to match the expected format
-    return NextResponse.json({
-      posts: result.data || [],
-      totalPages: result.meta?.totalPages || 1,
-      totalPosts: result.meta?.total || 0,
+    // Filter posts
+    const filtered = blogPosts.filter(post => {
+        const matchesSearch =
+            post.title.toLowerCase().includes(search.toLowerCase()) ||
+            post.description.toLowerCase().includes(search.toLowerCase());
+        const matchesCategory =
+            categoryName === 'All' || post.categories.includes(categoryName);
+        return matchesSearch && matchesCategory;
     });
-  } catch (error) {
-    console.error("Error proxying to backend:", error);
-    return NextResponse.json(
-      { error: "Internal Server Error" },
-      { status: 500 }
-    );
-  }
+
+    // Pagination
+    const totalPosts = filtered.length;
+    const totalPages = Math.ceil(totalPosts / limit);
+    const startIndex = (page - 1) * limit;
+    const endIndex = startIndex + limit;
+    const posts = filtered.slice(startIndex, endIndex);
+
+    return NextResponse.json({ posts, totalPages, totalPosts });
 }
 
 export async function POST(request: NextRequest) {
-  try {
-    // Get the authorization header
-    const authHeader = request.headers.get("authorization");
+    const body = await request.json();
+    const { title, content, categories: postCategories, image } = body;
 
-    if (!authHeader) {
-      return NextResponse.json(
-        { error: "Authorization header required" },
-        { status: 401 }
-      );
-    }
+    // Generate new id
+    const newId = Math.max(...blogPosts.map(p => p.id)) + 1;
+    const newSlug = title
+        .toLowerCase()
+        .replace(/[^a-z0-9]+/g, '-')
+        .replace(/^-|-$/g, '');
 
-    // Forward the request to the backend
-    const formData = await request.formData();
+    const newPost = {
+        id: newId,
+        title,
+        slug: newSlug,
+        description: content.substring(0, 100) + '...', // Simple description
+        date: new Date().toISOString().split('T')[0],
+        author: 'Dev Talles',
+        image: image || '/devi1.png',
+        categories: postCategories,
+        content,
+    };
 
-    const backendResponse = await fetch(
-      `${process.env.BACKEND_URL || "http://localhost:3000"}/api/post`,
-      {
-        method: "POST",
-        headers: {
-          Authorization: authHeader,
-        },
-        body: formData,
-      }
-    );
+    blogPosts.push(newPost);
 
-    if (!backendResponse.ok) {
-      let errorData;
-      const contentType = backendResponse.headers.get("content-type");
-
-      if (contentType && contentType.includes("application/json")) {
-        errorData = await backendResponse.json();
-      } else {
-        const errorText = await backendResponse.text();
-        errorData = {
-          error: "Backend error",
-          message: errorText.length > 500 ? "Internal server error" : errorText,
-          status: backendResponse.status,
-        };
-      }
-
-      return NextResponse.json(errorData, { status: backendResponse.status });
-    }
-
-    const result = await backendResponse.json();
-    return NextResponse.json(result);
-  } catch (error) {
-    console.error("Error proxying to backend:", error);
-    return NextResponse.json(
-      { error: "Internal Server Error" },
-      { status: 500 }
-    );
-  }
+    return NextResponse.json({ post: newPost });
 }
