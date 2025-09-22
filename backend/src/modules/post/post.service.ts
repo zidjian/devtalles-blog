@@ -103,6 +103,7 @@ export class PostService {
           content,
           userId,
           image: result?.secure_url,
+          description: content.substring(0, 160), // Add description field
         },
       });
 
@@ -117,7 +118,7 @@ export class PostService {
     });
   }
 
-  async getPostBySlug(userId: number, slug: string) {
+  async getPostBySlug(userId: number | undefined, slug: string) {
     const post = await this.prisma.post.findUnique({
       where: { slug },
       include: {
@@ -161,17 +162,21 @@ export class PostService {
     });
 
     // check if user liked the post
-    const like = await this.prisma.like.findUnique({
-      where: {
-        userId_postId: {
-          userId,
-          postId: post.id,
+    let liked = false;
+    if (userId) {
+      const like = await this.prisma.like.findUnique({
+        where: {
+          userId_postId: {
+            userId: +userId,
+            postId: +post.id,
+          },
         },
-      },
-    });
+      });
+      liked = like !== null;
+    }
 
-    // get related posts 
-    const categoryIds = categories.map(c => c.id);
+    // get related posts
+    const categoryIds = categories.map((c) => c.id);
     let related: { slug: string; title: string; image: string | null }[] = [];
 
     if (categoryIds.length > 0) {
@@ -181,7 +186,7 @@ export class PostService {
           categories: { some: { categoryId: { in: categoryIds } } },
         },
         select: { slug: true, title: true, image: true },
-        orderBy: { createdAt: "desc" },
+        orderBy: { createdAt: 'desc' },
         take: 3,
       });
     }
@@ -190,7 +195,7 @@ export class PostService {
       ...post,
       comments,
       categories,
-      liked: like !== null,
+      liked,
       related,
     };
   }
@@ -397,12 +402,12 @@ export class PostService {
   }
 
   async likePost(userId: number, postId: number) {
-    const post = await this.prisma.post.findUnique({ where: { id: postId } });
+    const post = await this.prisma.post.findUnique({ where: { id: +postId } });
     if (!post) throw new NotFoundException('Post not found');
 
     const existingLike = await this.prisma.like.findUnique({
       where: {
-        userId_postId: { userId, postId },
+        userId_postId: { userId: +userId, postId: +postId },
       },
     });
 
@@ -411,14 +416,14 @@ export class PostService {
     }
 
     return this.prisma.like.create({
-      data: { userId, postId },
+      data: { userId: +userId, postId: +postId },
     });
   }
 
   async unlikePost(userId: number, postId: number) {
     const existingLike = await this.prisma.like.findUnique({
       where: {
-        userId_postId: { userId, postId },
+        userId_postId: { userId: +userId, postId: +postId },
       },
     });
 
@@ -428,7 +433,7 @@ export class PostService {
 
     return this.prisma.like.delete({
       where: {
-        userId_postId: { userId, postId },
+        userId_postId: { userId: +userId, postId: +postId },
       },
     });
   }

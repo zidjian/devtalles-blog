@@ -1,125 +1,117 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextRequest, NextResponse } from 'next/server';
+
+// Mock comments data - in a real app, this would be stored in a database
+const commentsData: {
+    [slug: string]: Array<{
+        id: number;
+        name: string;
+        text: string;
+        date: string;
+    }>;
+} = {
+    'introduccion-a-react-hooks': [
+        {
+            id: 1,
+            name: 'Usuario 1',
+            text: 'Excelente artículo sobre React Hooks!',
+            date: '2023-10-02',
+        },
+        {
+            id: 2,
+            name: 'Usuario 2',
+            text: 'Muy útil, gracias por la explicación.',
+            date: '2023-10-03',
+        },
+    ],
+    'optimizacion-de-performance-en-nextjs': [
+        {
+            id: 3,
+            name: 'Dev Frontend',
+            text: 'Las técnicas de optimización son muy útiles.',
+            date: '2023-09-16',
+        },
+    ],
+    'diseno-de-apis-restful': [
+        {
+            id: 4,
+            name: 'Backend Dev',
+            text: 'Buenas prácticas para APIs REST.',
+            date: '2023-08-31',
+        },
+    ],
+    // Add empty arrays for other posts
+    'introduccion-a-typescript': [],
+    'tailwind-css-avanzado': [],
+    'nodejs-y-express': [],
+    'testing-en-react-con-jest': [],
+    'animaciones-con-framer-motion': [],
+    'autenticacion-en-nextauthjs': [],
+    'consumo-de-apis-con-swr': [],
+    'deploy-en-vercel': [],
+    'gestion-de-estado-con-redux-toolkit': [],
+    'seo-en-nextjs': [],
+    'formularios-con-react-hook-form': [],
+    'estilos-con-styled-components': [],
+};
 
 export async function GET(
-  request: NextRequest,
-  { params }: { params: Promise<{ slug: string }> }
+    request: NextRequest,
+    { params }: { params: Promise<{ slug: string }> }
 ) {
-  try {
     const { slug } = await params;
 
-    // Get query parameters for pagination
-    const { searchParams } = new URL(request.url);
-    const page = searchParams.get("page") || "1";
-    const limit = searchParams.get("limit") || "5";
+    // Simulate network delay
+    await new Promise(resolve => setTimeout(resolve, 500));
 
-    // Build query string
-    const queryParams = new URLSearchParams();
-    queryParams.append("page", page);
-    queryParams.append("limit", limit);
+    const comments = commentsData[slug] || [];
 
-    // Forward the request to the backend
-    const backendResponse = await fetch(
-      `${
-        process.env.BACKEND_URL || "http://localhost:3000"
-      }/api/comment/post/${slug}?${queryParams.toString()}`,
-      {
-        method: "GET",
-        headers: {
-          "Content-Type": "application/json",
-        },
-      }
-    );
-
-    if (!backendResponse.ok) {
-      let errorData;
-      const contentType = backendResponse.headers.get("content-type");
-
-      if (contentType && contentType.includes("application/json")) {
-        errorData = await backendResponse.json();
-      } else {
-        const errorText = await backendResponse.text();
-        errorData = {
-          error: "Backend error",
-          message: errorText.length > 500 ? "Internal server error" : errorText,
-          status: backendResponse.status,
-        };
-      }
-
-      return NextResponse.json(errorData, { status: backendResponse.status });
-    }
-
-    const result = await backendResponse.json();
-    return NextResponse.json({
-      comments: result.data || [],
-      pagination: result.meta,
-    });
-  } catch (error) {
-    console.error("Error proxying to backend:", error);
-    return NextResponse.json(
-      { error: "Internal Server Error" },
-      { status: 500 }
-    );
-  }
+    return NextResponse.json({ comments });
 }
 
 export async function POST(
-  request: NextRequest,
-  { params }: { params: Promise<{ slug: string }> }
+    request: NextRequest,
+    { params }: { params: Promise<{ slug: string }> }
 ) {
-  try {
-    // Get the authorization header
-    const authHeader = request.headers.get("authorization");
-
-    if (!authHeader) {
-      return NextResponse.json(
-        { error: "Authorization header required" },
-        { status: 401 }
-      );
-    }
-
     const { slug } = await params;
-    const body = await request.json();
 
-    // Forward the request to the backend
-    const backendResponse = await fetch(
-      `${
-        process.env.BACKEND_URL || "http://localhost:3000"
-      }/api/comment/post/${slug}`,
-      {
-        method: "POST",
-        headers: {
-          Authorization: authHeader,
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(body),
-      }
-    );
+    try {
+        const body = await request.json();
+        const { name, text } = body;
 
-    if (!backendResponse.ok) {
-      let errorData;
-      const contentType = backendResponse.headers.get("content-type");
+        if (!name || !text) {
+            return NextResponse.json(
+                { error: 'Name and text are required' },
+                { status: 400 }
+            );
+        }
 
-      if (contentType && contentType.includes("application/json")) {
-        errorData = await backendResponse.json();
-      } else {
-        const errorText = await backendResponse.text();
-        errorData = {
-          error: "Backend error",
-          message: errorText.length > 500 ? "Internal server error" : errorText,
-          status: backendResponse.status,
+        // Simulate network delay
+        await new Promise(resolve => setTimeout(resolve, 300));
+
+        // Initialize comments array if it doesn't exist
+        if (!commentsData[slug]) {
+            commentsData[slug] = [];
+        }
+
+        // Create new comment
+        const newComment = {
+            id: Date.now(), // Simple ID generation
+            name: name.trim(),
+            text: text.trim(),
+            date: new Date().toISOString().split('T')[0],
         };
-      }
 
-      return NextResponse.json(errorData, { status: backendResponse.status });
+        // Add comment to the post
+        commentsData[slug].push(newComment);
+
+        return NextResponse.json({
+            message: 'Comment added successfully',
+            comment: newComment,
+        });
+    } catch {
+        return NextResponse.json(
+            { error: 'Invalid request body' },
+            { status: 400 }
+        );
     }
-
-    const result = await backendResponse.json();
-    return NextResponse.json({ comment: result });
-  } catch (error) {
-    console.error("Error proxying to backend:", error);
-    return NextResponse.json(
-      { error: "Internal Server Error" },
-      { status: 500 }
-    );
-  }
 }

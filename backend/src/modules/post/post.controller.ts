@@ -7,7 +7,9 @@ import {
   Post,
   Put,
   Query,
+  Req,
   UploadedFile,
+  UseGuards,
   UseInterceptors,
 } from '@nestjs/common';
 import { PostService } from './post.service';
@@ -16,12 +18,22 @@ import { CreatePostDto } from './dto/create-post.dto';
 import { UpdatePostDto } from './dto/update-post.dto';
 import { Auth } from 'src/auth/decorators/auth.decorator';
 import { GetUser } from 'src/auth/decorators/get-user.decorator';
+import { OptionalJwtAuthGuard } from 'src/auth/guards/optional-jwt.guard';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { FilterPostDto } from './dto/filter-post.dto';
 
 @Controller('post')
 export class PostController {
   constructor(private readonly postService: PostService) {}
+
+  @Auth()
+  @Get('statistics')
+  async getStatistics(
+    @Query('startDate') startDate?: string,
+    @Query('endDate') endDate?: string,
+  ) {
+    return this.postService.getStatistics(startDate, endDate);
+  }
 
   @Auth()
   @Post()
@@ -53,12 +65,10 @@ export class PostController {
     return this.postService.getPostById(Number(id));
   }
 
-  @Auth()
+  @UseGuards(OptionalJwtAuthGuard)
   @Get(':slug')
-  async getPostBySlug(
-    @GetUser('id') userId: number,
-    @Param('slug') slug: string,
-  ) {
+  async getPostBySlug(@Param('slug') slug: string, @Req() req: any) {
+    const userId = req.user?.id;
     return this.postService.getPostBySlug(userId, slug);
   }
 
@@ -71,7 +81,12 @@ export class PostController {
     @Body() updatePostDto: UpdatePostDto,
     @UploadedFile() image?: Express.Multer.File,
   ) {
-    return this.postService.updatePost(Number(id), userId, updatePostDto, image);
+    return this.postService.updatePost(
+      Number(id),
+      userId,
+      updatePostDto,
+      image,
+    );
   }
 
   @Auth()
@@ -108,14 +123,5 @@ export class PostController {
       Number(userId),
       paginationDto,
     );
-  }
-
-  @Auth()
-  @Get('statistics')
-  async getStatistics(
-    @Query('startDate') startDate?: string,
-    @Query('endDate') endDate?: string,
-  ) {
-    return this.postService.getStatistics(startDate, endDate);
   }
 }
