@@ -48,9 +48,6 @@ export default function ListCategoriesPage() {
     }, [session]);
 
     const handleDelete = async (id: number) => {
-        if (!confirm('¿Estás seguro de que quieres eliminar esta categoría?'))
-            return;
-
         try {
             const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}category/${id}`, {
                 method: 'DELETE',

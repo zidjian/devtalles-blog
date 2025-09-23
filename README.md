@@ -1,4 +1,4 @@
-![Logo del proyecto](ubicación)
+![Logo del proyecto](/frontend/public/devtalles.png)
 
 <hr />
 
@@ -6,93 +6,28 @@
 
 - [Descripción del proyecto](#Descripción-del-proyecto)
 - [Funcionalidades del proyecto](#Funcionalidades-del-proyecto)
-- [Acceso al proyecto](#Acceso-al-proyecto)
-- [Tecnologías utilizadas](#Tecnologías-utilizadas)
 - [Autores](#Autores)
 
 ## Descripción del proyecto
 
-Descripción
+Este es la plataforma **DevTalles**, un blog dedicado al desarrollo web. La aplicación permite a los usuarios explorar artículos, categorías y contenido. Incluye funcionalidades de autenticación, gestión de posts, categorías y un dashboard administrativo.
 
-![Mockup del proyecto](ubicación)
+
+![Mockup del proyecto](/frontend/public/desktop.png)
 
 ## Funcionalidades del proyecto
 
--
--
--
+- Landing page donde se puedan visualizar los posts
+- Filtros por categorias y buscador para los posts.
+- Panel administrativo para la gestión de los posts (CRUD de posts, solo personal admin puede acceder a todos los posts). `Usuario: admin@blog.com Contraseña: 123456`
+- Página para visualizar los detalles del post donde se pueda dar "likes" y añadir comentarios al mismo. Un plus si se muestran otros post de interés.
+- Módulo para login y registro, se debe dar opción para iniciar sesión al menos con Discord.
 
-## Instalación
-
-Clonar repositorio
-
-### Backend
-
-#### 1. Dirigirse a la carpeta backend
-
-```bash
-cd backend
-```
-
-#### 2. Instalar dependencias
-
-```bash
-npm install
-```
-
-#### 3. Duplicar el archivo `.env.example` a `.env`
-
-```bash
-cp .env.example .env
-```
-
-#### 4. Configurar las variables de entorno
-
-```md
-# Variables de entorno develop
-
-PORT=5432
-DATABASE_URL=postgresql://postgres:admin@localhost:5431/devtalles-blog?schema=public
-JWT_SECRET=MYSECRET
-```
-
-#### 5. Levantar base de datos
-
-```bash
-docker compose up -d
-```
-
-#### 6. Generar el cliente de Prisma
-
-```bash
-npx prisma generate
-```
-
-#### 7. Ejecutar las migraciones
-
-```bash
-npx prisma migrate dev
-```
-
-#### 8. Ejecutar la aplicacion
-
-```bash
-npm run dev
-```
-
-#### Opcional Setup Oauth Discord
-
-Si se quiere usar el Oauth de discord, seguir la configuración : `/backend/DISCORD_OAUTH_SETUP.md` [Discord Oauth Setup](/backend/DISCORD_OAUTH_SETUP.md)
-
-## Acceso al proyecto
-
-[Demo](enlace)
 
 ## Tecnologías utilizadas
 
--
--
--
+- Next.js
+- Nest.js
 
 ## Autores
 

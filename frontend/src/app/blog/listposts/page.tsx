@@ -131,9 +131,6 @@ export default function ListPostsPage() {
 
 
     const handleDelete = async (id: number) => {
-        if (!confirm('¿Estás seguro de que quieres eliminar este post?'))
-            return;
-
         try {
             const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}post/${id}`, {
                 method: 'DELETE',
@@ -144,10 +141,11 @@ export default function ListPostsPage() {
             if (!response.ok) {
                 throw new Error('Failed to delete category');
             }
-            setCategories(categories.filter(cat => cat.id !== id));
-            toast.success('Categoría eliminada exitosamente');
+            
+            fetchPosts(searchTerm, selectedCategory, currentPage);
+            toast.success('Post eliminado exitosamente');
         } catch {
-            toast.error('Error al eliminar la categoría');
+            toast.error('Error al eliminar el post');
         }
     };
 

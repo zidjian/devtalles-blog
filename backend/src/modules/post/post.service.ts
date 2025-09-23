@@ -386,18 +386,18 @@ export class PostService {
   }
 
   async deletePost(id: number) {
-    const post = await this.prisma.post.findUnique({ where: { id } });
+    const post = await this.prisma.post.findUnique({ where: { id: +id } });
 
     if (!post) {
       throw new NotFoundException(`Post with id ${id} not found`);
     }
 
     return this.prisma.$transaction(async (tx) => {
-      await tx.postCategory.deleteMany({ where: { postId: id } });
-      await tx.comment.deleteMany({ where: { postId: id } });
-      await tx.like.deleteMany({ where: { postId: id } });
+      await tx.postCategory.deleteMany({ where: { postId: +id } });
+      await tx.comment.deleteMany({ where: { postId: +id } });
+      await tx.like.deleteMany({ where: { postId: +id } });
 
-      return tx.post.delete({ where: { id } });
+      return tx.post.delete({ where: { id: +id } });
     });
   }
 

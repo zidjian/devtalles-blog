@@ -9,7 +9,7 @@
 
 ## Descripción del proyecto
 
-Este es el frontend de la plataforma **DevTalles**, un blog dedicado al desarrollo web. La aplicación permite a los usuarios explorar artículos, categorías y contenido relacionado con tecnologías web modernas. Incluye funcionalidades de autenticación, gestión de posts, categorías y un dashboard administrativo.
+Este es el frontend de la plataforma **DevTalles**, un blog dedicado al desarrollo web. La aplicación permite a los usuarios explorar artículos, categorías y contenido. Incluye funcionalidades de autenticación, gestión de posts, categorías y un dashboard administrativo.
 
 ## Desplegar el proyecto
 

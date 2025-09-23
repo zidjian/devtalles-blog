@@ -88,7 +88,10 @@ export class CategoryService {
             throw new NotFoundException('Category not found');
         }
 
-        const deletedCategory = await this.prisma.category.delete({ where: { id } });
+        const deletedCategory = this.prisma.$transaction(async (tx) => {
+      await tx.postCategory.deleteMany({ where: { categoryId: +id } });
+      await tx.category.delete({ where: { id: +id } });
+    });
 
         if (!deletedCategory) {
             throw new BadRequestException('Category not deleted');
