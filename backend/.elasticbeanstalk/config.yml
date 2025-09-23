@@ -1,6 +1,6 @@
 branch-defaults:
   default:
-    environment: devtalles
+    environment: nestjs-env
   main:
     environment: devtalles
     group_suffix: null
