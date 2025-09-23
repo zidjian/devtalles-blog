@@ -5,7 +5,6 @@ import { PrismaModule } from '../prisma/prisma.module';
 import { AuthService } from './auth.service';
 import { AuthController } from './auth.controller';
 import { JwtStrategy } from './strategies/jwt.strategy';
-import { DiscordStrategy } from './strategies/discord.strategy';
 import { envs } from '../config/envs';
 
 @Module({
@@ -18,7 +17,7 @@ import { envs } from '../config/envs';
     }),
   ],
   controllers: [AuthController],
-  providers: [AuthService, JwtStrategy, DiscordStrategy],
+  providers: [AuthService, JwtStrategy],
   exports: [AuthService],
 })
 export class AuthModule {}
