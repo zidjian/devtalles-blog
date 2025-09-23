@@ -6,6 +6,7 @@ import {
 import { JwtService } from '@nestjs/jwt';
 import { PrismaService } from '../prisma/prisma.service';
 import { LoginDto, RegisterDto } from './dto/auth.dto';
+import { RegisterDiscordDto } from './dto/register-discord.dto';
 import * as bcrypt from 'bcryptjs';
 import { Role } from '@prisma/client';
 import { JwtPayload } from './interfaces/jwt-payload.interface';
@@ -182,6 +183,80 @@ export class AuthService {
 
     return {
       access_token: this.jwtService.sign(payload),
+      user: {
+        id: user.id,
+        username: user.username,
+        email: user.email,
+        firstName: user.firstName || '',
+        lastName: user.lastName || '',
+        role: user.role,
+      },
+    };
+  }
+
+  async registerDiscordUser(discordData: RegisterDiscordDto): Promise<AuthResponse> {
+    const { email, discordId, username, avatar } = discordData;
+    
+    // Buscar usuario existente por discordId
+    let user = await this.prisma.user.findUnique({
+      where: { discordId },
+    });
+
+    if (user) {
+      // Actualizar información del usuario existente
+      user = await this.prisma.user.update({
+        where: { id: user.id },
+        data: {
+          discordUsername: username,
+          discordAvatar: avatar,
+          email: email || user.email,
+        },
+      });
+    } else {
+      // Buscar usuario existente por email
+      const existingUser = await this.prisma.user.findUnique({
+        where: { email: email || '' },
+      });
+
+      if (existingUser) {
+        // Vincular Discord a usuario existente
+        user = await this.prisma.user.update({
+          where: { id: existingUser.id },
+          data: {
+            discordId: discordId,
+            discordUsername: username,
+            discordAvatar: avatar,
+          },
+        });
+      } else {
+        // Crear nuevo usuario
+        user = await this.prisma.user.create({
+          data: {
+            discordId: discordId,
+            discordUsername: username,
+            discordAvatar: avatar,
+            email: email || '',
+            username: username,
+            firstName: username,
+            lastName: '',
+            profilePicture: avatar,
+          },
+        });
+      }
+    }
+
+    // Generar JWT
+    const payload: JwtPayload = {
+      email: user.email,
+      sub: user.id,
+      username: user.username,
+      role: user.role,
+    };
+
+    const token = this.jwtService.sign(payload);
+
+    return {
+      access_token: token,
       user: {
         id: user.id,
         username: user.username,

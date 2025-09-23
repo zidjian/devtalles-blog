@@ -21,6 +21,7 @@ import {
   AuthResponseDto,
   ProfileResponseDto,
 } from './dto/auth.dto';
+import { RegisterDiscordDto } from './dto/register-discord.dto';
 import { Auth } from './decorators/auth.decorator';
 
 interface AuthenticatedRequest extends Request {
@@ -225,6 +226,53 @@ export class AuthController {
         role: req.user.role,
       },
     };
+  }
+
+  @Post('register-discord')
+  @ApiOperation({
+    summary: 'Register/Login with Discord',
+    description:
+      'Register or authenticate user with Discord OAuth data from NextAuth',
+  })
+  @ApiBody({
+    schema: {
+      type: 'object',
+      properties: {
+        email: { type: 'string', example: 'user@example.com' },
+        discordId: { type: 'string', example: '123456789012345678' },
+        username: { type: 'string', example: 'johndoe' },
+        access_token: { type: 'string', example: 'discord_access_token' },
+        refresh_token: { type: 'string', example: 'discord_refresh_token' },
+        avatar: {
+          type: 'string',
+          example: 'https://cdn.discordapp.com/avatars/...',
+        },
+      },
+    },
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'User successfully registered/authenticated with Discord',
+    type: AuthResponseDto,
+  })
+  @ApiResponse({
+    status: 201,
+    description: 'New user created with Discord',
+    type: AuthResponseDto,
+  })
+  @ApiResponse({
+    status: 400,
+    description: 'Invalid Discord data',
+    schema: {
+      example: {
+        statusCode: 400,
+        message: 'Invalid Discord data provided',
+        error: 'Bad Request',
+      },
+    },
+  })
+  async registerDiscord(@Body() discordData: RegisterDiscordDto) {
+    return await this.authService.registerDiscordUser(discordData);
   }
 
   @Get('discord')

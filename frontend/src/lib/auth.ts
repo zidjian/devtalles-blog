@@ -18,7 +18,6 @@ export default NextAuth({
     callbacks: {
         async jwt({ token, user, account, profile }) {
             if (account?.provider == 'credentials') {
-                console.log('User:', user);
                 token.data = {
                     ...user,
                 };
@@ -27,7 +26,7 @@ export default NextAuth({
             } else if (account?.provider == 'discord') {
                 const data = {
                     email: user.email || '',
-                    discordId: profile?.sub || '',
+                    discordId: (profile as any)?.id || '',
                     username: user.name || '',
                     access_token: account?.access_token || '',
                     refresh_token: account?.refresh_token || '',
@@ -45,13 +44,19 @@ export default NextAuth({
                         body: JSON.stringify(data),
                     }
                 );
-                const extendData = await extend.json();
+                const extendData = (await extend.json()) as IAuthResponse;
 
                 token.data = {
+                    id: +extendData.user.id,
+                    email: extendData.user.email,
+                    access_token: extendData.access_token,
                     user: {
-                        ...user,
-                        token: extendData.token,
-                        roles: extendData.roles,
+                        id: +extendData.user.id,
+                        username: extendData.user.username,
+                        email: extendData.user.email,
+                        firstName: extendData.user.firstName,
+                        lastName: extendData.user.lastName,
+                        role: extendData.user.role,
                     },
                 };
             }
@@ -61,6 +66,24 @@ export default NextAuth({
         async session({ session, token }) {
             session.user = token.data as any;
             return session;
+        },
+        async redirect({ url, baseUrl }) {
+            // Si la URL es relativa, convertirla a absoluta
+            if (url.startsWith('/')) {
+                const fullUrl = `${baseUrl}${url}`;
+
+                return fullUrl;
+            }
+
+            // Si la URL es del mismo dominio, permitirla
+            if (new URL(url).origin === baseUrl) {
+                return url;
+            }
+
+            // Por defecto, redirigir al callback de Discord para procesar la autenticación
+            const discordCallback = `${baseUrl}/blog/discord-callback`;
+
+            return discordCallback;
         },
     },
     providers: [
