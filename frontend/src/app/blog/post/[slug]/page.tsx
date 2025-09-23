@@ -10,11 +10,11 @@ import { useForm } from 'react-hook-form';
 import {
     PostSkeleton,
     CommentsSkeleton,
-    RelatedPostsSkeleton,
     TableOfContentsSkeleton,
 } from '@/components/Skeleton';
 import Image from 'next/image';
 import { useSession } from 'next-auth/react';
+import { toast } from 'sonner';
 
 interface Post {
     id: number;
@@ -34,6 +34,13 @@ interface Post {
     categories: Categories[];
     comments: Comments[];
     liked: boolean;
+    related: Related[];
+}
+
+interface Related {
+    slug: string;
+    title: string;
+    image: string;
 }
 
 interface Categories {
@@ -76,7 +83,6 @@ export default function PostPage() {
     const [error, setError] = useState<string | null>(null);
     const [commentsLoading, setCommentsLoading] = useState(true);
     const [comments, setComments] = useState<Array<Datum>>([]);
-    const [relatedPosts, setRelatedPosts] = useState<Post[]>([]);
 
     const fetchPost = async () => {
         try {
@@ -131,8 +137,9 @@ export default function PostPage() {
             const data = await response.json();
             setComments(data.data);
         } catch (err) {
-            console.error('Error fetching comments:', err);
-            // Set empty comments array on error
+            toast.error(
+                err instanceof Error ? err.message : 'An error occurred'
+            );
             setComments([]);
         } finally {
             setCommentsLoading(false);
@@ -149,7 +156,7 @@ export default function PostPage() {
         handleSubmit,
         reset,
         formState: { errors },
-    } = useForm<{ name: string; text: string }>();
+    } = useForm<{ text: string }>();
 
     const [processedContent, setProcessedContent] = useState(
         post?.content || ''
@@ -176,25 +183,6 @@ export default function PostPage() {
         );
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [post?.content]);
-
-    // useEffect(() => {
-    //     if (post) {
-    //         const fetchRelated = async () => {
-    //             try {
-    //                 const response = await fetch(
-    //                     `/api/posts/id/${post.id}/related-posts`
-    //                 );
-    //                 if (response.ok) {
-    //                     const data = await response.json();
-    //                     setRelatedPosts(data.relatedPosts);
-    //                 }
-    //             } catch (error) {
-    //                 console.error('Error fetching related posts:', error);
-    //             }
-    //         };
-    //         fetchRelated();
-    //     }
-    // }, [post]);
 
     if (loading) {
         return (
@@ -240,7 +228,7 @@ export default function PostPage() {
         }
     };
 
-    const onCommentSubmit = async (data: { name: string; text: string }) => {
+    const onCommentSubmit = async (data: { text: string }) => {
         try {
             const response = await fetch(
                 `${process.env.NEXT_PUBLIC_API_URL}comment/post/${slug}`,
@@ -343,7 +331,7 @@ export default function PostPage() {
                                         <div
                                             className="prose prose-invert max-w-none"
                                             dangerouslySetInnerHTML={{
-                                                __html: post.content,
+                                                __html: processedContent,
                                             }}
                                         />
                                     </CardContent>
@@ -373,97 +361,56 @@ export default function PostPage() {
                             ) : null}
                         </div>
 
-                        {loading ? (
+                        {post.related.length > 0 && (
                             <Card className="bg-black/20 backdrop-blur-sm border-white/10 mt-8">
                                 <CardHeader>
                                     <CardTitle className="text-white">
-                                        Posts Relacionados
+                                        Publicaciones Relacionadas
                                     </CardTitle>
                                 </CardHeader>
                                 <CardContent>
-                                    <RelatedPostsSkeleton />
+                                    <div className="grid grid-cols-3 gap-4">
+                                        {post.related.map(relatedPost => (
+                                            <div
+                                                key={relatedPost.slug}
+                                                className="group">
+                                                <div className="relative bg-gradient-to-br from-white/10 to-white/5 backdrop-blur-lg border border-white/20 rounded-2xl overflow-hidden shadow-2xl hover:shadow-purple-500/20 transition-all duration-500 hover:scale-[1.02] hover:-translate-y-2">
+                                                    {/* Image Container */}
+                                                    <div className="relative aspect-[4/3] overflow-hidden">
+                                                        {/* eslint-disable-next-line @next/next/no-img-element */}
+                                                        <img
+                                                            src={
+                                                                relatedPost.image
+                                                            }
+                                                            alt={
+                                                                relatedPost.title
+                                                            }
+                                                            className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
+                                                        />
+                                                        {/* Gradient Overlay */}
+                                                        <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent opacity-60 group-hover:opacity-40 transition-opacity duration-500" />
+                                                    </div>
+                                                    {/* Content */}
+                                                    <div className="p-4">
+                                                        <h3 className="text-sm font-bold text-white mb-2 line-clamp-2 group-hover:text-purple-200 transition-colors duration-300">
+                                                            {relatedPost.title}
+                                                        </h3>
+                                                        {/* Action Button */}
+                                                        <a
+                                                            href={`/blog/post/${relatedPost.slug}`}
+                                                            className="w-full py-2 px-3 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white font-medium rounded-lg transition-all duration-300 transform hover:scale-105 hover:shadow-lg group-hover:shadow-purple-500/25 text-center block text-xs">
+                                                            Leer más
+                                                        </a>
+                                                    </div>
+                                                    {/* Decorative Elements */}
+                                                    <div className="absolute top-0 right-0 w-12 h-12 bg-gradient-to-bl from-purple-500/10 to-transparent rounded-bl-full" />
+                                                    <div className="absolute bottom-0 left-0 w-8 h-8 bg-gradient-to-tr from-pink-500/10 to-transparent rounded-tr-full" />
+                                                </div>
+                                            </div>
+                                        ))}
+                                    </div>
                                 </CardContent>
                             </Card>
-                        ) : (
-                            relatedPosts.length > 0 && (
-                                <Card className="bg-black/20 backdrop-blur-sm border-white/10 mt-8">
-                                    <CardHeader>
-                                        <CardTitle className="text-white">
-                                            Posts Relacionados
-                                        </CardTitle>
-                                    </CardHeader>
-                                    <CardContent>
-                                        <div className="grid grid-cols-3 gap-4">
-                                            {relatedPosts.map(relatedPost => (
-                                                <div
-                                                    key={relatedPost.id}
-                                                    className="group">
-                                                    <div className="relative bg-gradient-to-br from-white/10 to-white/5 backdrop-blur-lg border border-white/20 rounded-2xl overflow-hidden shadow-2xl hover:shadow-purple-500/20 transition-all duration-500 hover:scale-[1.02] hover:-translate-y-2">
-                                                        {/* Image Container */}
-                                                        <div className="relative aspect-[4/3] overflow-hidden">
-                                                            {/* eslint-disable-next-line @next/next/no-img-element */}
-                                                            <img
-                                                                src={
-                                                                    relatedPost.image
-                                                                }
-                                                                alt={
-                                                                    relatedPost.title
-                                                                }
-                                                                className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
-                                                            />
-                                                            {/* Gradient Overlay */}
-                                                            <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent opacity-60 group-hover:opacity-40 transition-opacity duration-500" />
-                                                            {/* Category Badge */}
-                                                            <div className="absolute top-4 left-4">
-                                                                <div className="flex flex-wrap gap-1">
-                                                                    {relatedPost.categories?.map(
-                                                                        (
-                                                                            cat,
-                                                                            index
-                                                                        ) => (
-                                                                            <span
-                                                                                key={
-                                                                                    index
-                                                                                }
-                                                                                className="px-3 py-1 bg-white/20 backdrop-blur-md text-white text-xs font-medium rounded-full border border-white/30">
-                                                                                {
-                                                                                    cat.name
-                                                                                }
-                                                                            </span>
-                                                                        )
-                                                                    )}
-                                                                </div>
-                                                            </div>
-                                                        </div>
-                                                        {/* Content */}
-                                                        <div className="p-4">
-                                                            <h3 className="text-sm font-bold text-white mb-2 line-clamp-2 group-hover:text-purple-200 transition-colors duration-300">
-                                                                {
-                                                                    relatedPost.title
-                                                                }
-                                                            </h3>
-                                                            <p className="text-white/70 text-xs mb-3 line-clamp-2 leading-relaxed">
-                                                                {
-                                                                    relatedPost.description
-                                                                }
-                                                            </p>
-                                                            {/* Action Button */}
-                                                            <a
-                                                                href={`/blog/post/${relatedPost.slug}`}
-                                                                className="w-full py-2 px-3 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white font-medium rounded-lg transition-all duration-300 transform hover:scale-105 hover:shadow-lg group-hover:shadow-purple-500/25 text-center block text-xs">
-                                                                Leer más
-                                                            </a>
-                                                        </div>
-                                                        {/* Decorative Elements */}
-                                                        <div className="absolute top-0 right-0 w-12 h-12 bg-gradient-to-bl from-purple-500/10 to-transparent rounded-bl-full" />
-                                                        <div className="absolute bottom-0 left-0 w-8 h-8 bg-gradient-to-tr from-pink-500/10 to-transparent rounded-tr-full" />
-                                                    </div>
-                                                </div>
-                                            ))}
-                                        </div>
-                                    </CardContent>
-                                </Card>
-                            )
                         )}
 
                         {/* Comments section */}
@@ -552,123 +499,47 @@ export default function PostPage() {
                             </CardContent>
                         </Card>
                     </main>
+
+                    {/* Table of Contents Sidebar */}
                     <aside className="lg:col-span-1">
-                        <Card className="bg-black/20 backdrop-blur-sm border-white/10 sticky top-24">
-                            <CardHeader>
-                                <CardTitle className="text-white">
-                                    Índice
-                                </CardTitle>
-                            </CardHeader>
-                            <CardContent>
-                                {loading ? (
-                                    <TableOfContentsSkeleton />
-                                ) : (
-                                    <nav>
-                                        <ul className="space-y-2">
-                                            {menuItems.map(item => (
-                                                <li
-                                                    key={item.id}
-                                                    className={
-                                                        item.level === 2
-                                                            ? 'pl-0'
-                                                            : item.level === 3
-                                                              ? 'pl-4'
-                                                              : 'pl-8'
-                                                    }>
-                                                    <a
-                                                        href={`#${item.id}`}
-                                                        className="text-white/80 hover:text-white transition-colors">
-                                                        {item.text}
-                                                    </a>
-                                                </li>
-                                            ))}
-                                        </ul>
-                                    </nav>
-                                )}
-                            </CardContent>
-                        </Card>
-                        {false && (
-                            <Card className="bg-black/20 backdrop-blur-sm border-white/10 mt-8">
+                        {loading ? (
+                            <TableOfContentsSkeleton />
+                        ) : menuItems.length > 0 ? (
+                            <Card className="bg-black/20 backdrop-blur-sm border-white/10 sticky top-40">
                                 <CardHeader>
-                                    <CardTitle className="text-white">
-                                        Posts Relacionados
+                                    <CardTitle className="text-white text-lg">
+                                        Índice
                                     </CardTitle>
                                 </CardHeader>
                                 <CardContent>
-                                    <div className="grid grid-cols-3 gap-4">
-                                        {relatedPosts.map(relatedPost => (
-                                            <div
-                                                key={relatedPost.id}
-                                                className="group">
-                                                <div className="relative bg-gradient-to-br from-white/10 to-white/5 backdrop-blur-lg border border-white/20 rounded-2xl overflow-hidden shadow-2xl hover:shadow-purple-500/20 transition-all duration-500 hover:scale-[1.02] hover:-translate-y-2">
-                                                    {/* Image Container */}
-                                                    <div className="relative aspect-[4/3] overflow-hidden">
-                                                        {/* eslint-disable-next-line @next/next/no-img-element */}
-                                                        <img
-                                                            src={
-                                                                relatedPost.image
-                                                            }
-                                                            alt={
-                                                                relatedPost.title
-                                                            }
-                                                            className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
-                                                        />
-                                                        {/* Gradient Overlay */}
-                                                        <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent opacity-60 group-hover:opacity-40 transition-opacity duration-500" />
-
-                                                        {/* Category Badge */}
-                                                        <div className="absolute top-4 left-4">
-                                                            <div className="flex flex-wrap gap-1">
-                                                                {relatedPost.categories?.map(
-                                                                    (
-                                                                        cat,
-                                                                        index
-                                                                    ) => (
-                                                                        <span
-                                                                            key={
-                                                                                index
-                                                                            }
-                                                                            className="px-3 py-1 bg-white/20 backdrop-blur-md text-white text-xs font-medium rounded-full border border-white/30">
-                                                                            {
-                                                                                cat.name
-                                                                            }
-                                                                        </span>
-                                                                    )
-                                                                )}
-                                                            </div>
-                                                        </div>
-                                                    </div>
-
-                                                    {/* Content */}
-                                                    <div className="p-4">
-                                                        <h3 className="text-sm font-bold text-white mb-2 line-clamp-2 group-hover:text-purple-200 transition-colors duration-300">
-                                                            {relatedPost.title}
-                                                        </h3>
-
-                                                        <p className="text-white/70 text-xs mb-3 line-clamp-2 leading-relaxed">
-                                                            {
-                                                                relatedPost.description
-                                                            }
-                                                        </p>
-
-                                                        {/* Action Button */}
-                                                        <a
-                                                            href={`/blog/post/${relatedPost.slug}`}
-                                                            className="w-full py-2 px-3 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white font-medium rounded-lg transition-all duration-300 transform hover:scale-105 hover:shadow-lg group-hover:shadow-purple-500/25 text-center block text-xs">
-                                                            Leer más
-                                                        </a>
-                                                    </div>
-
-                                                    {/* Decorative Elements */}
-                                                    <div className="absolute top-0 right-0 w-12 h-12 bg-gradient-to-bl from-purple-500/10 to-transparent rounded-bl-full" />
-                                                    <div className="absolute bottom-0 left-0 w-8 h-8 bg-gradient-to-tr from-pink-500/10 to-transparent rounded-tr-full" />
-                                                </div>
-                                            </div>
+                                    <nav className="space-y-2">
+                                        {menuItems.map((item) => (
+                                            <a
+                                                key={item.id}
+                                                href={`#${item.id}`}
+                                                onClick={(e) => {
+                                                    e.preventDefault();
+                                                    const el = document.getElementById(item.id);
+                                                    if (el) {
+                                                        const y = el.getBoundingClientRect().top + window.pageYOffset - 120;
+                                                        window.scrollTo({ top: y, behavior: 'smooth' });
+                                                    }
+                                                }}
+                                                className={`block text-sm text-white/70 hover:text-white transition-colors ${
+                                                    item.level === 2
+                                                        ? 'ml-0'
+                                                        : item.level === 3
+                                                        ? 'ml-4'
+                                                        : 'ml-8'
+                                                }`}
+                                            >
+                                                {item.text}
+                                            </a>
                                         ))}
-                                    </div>
+                                    </nav>
                                 </CardContent>
                             </Card>
-                        )}
+                        ) : null}
                     </aside>
                 </div>
             </div>

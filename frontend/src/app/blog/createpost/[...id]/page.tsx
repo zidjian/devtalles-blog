@@ -13,6 +13,7 @@ import { z } from 'zod';
 import RichTextEditor from '@/components/RichTextEditor';
 import { MultiSelect } from '@/components/ui/multiselect';
 import { useSession } from 'next-auth/react';
+import { toast } from 'sonner';
 
 const schema = z.object({
     title: z.string().min(1, 'El título es requerido'),
@@ -138,17 +139,15 @@ export default function CreateEditPostPage() {
             if (!response.ok) {
                 throw new Error('Failed to save post');
             }
-
-            alert(
+            toast.success(
                 isNew
                     ? 'Post creado exitosamente!'
                     : 'Post actualizado exitosamente!'
             );
 
             router.push('/blog/listposts');
-        } catch (error) {
-            console.error('Error submitting form:', error);
-            alert('Error al guardar el post');
+        } catch {
+            toast.error('Error al guardar el post');
         } finally {
             setSubmitting(false);
         }

@@ -1,7 +1,6 @@
 'use client';
 
-import { getProviders, signIn } from 'next-auth/react';
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
@@ -9,12 +8,14 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import ShinyText from '@/components/ShinyText';
 import { ArrowLeft, Eye, EyeOff } from 'lucide-react';
-import { ClientSafeProvider } from 'next-auth/react';
+import { useRouter } from 'next/navigation';
+import { toast } from 'sonner';
 
 const signupSchema = z.object({
     email: z.string().email('Dirección de correo electrónico inválida'),
-    nombre: z.string().min(1, 'El nombre es obligatorio'),
-    apellidos: z.string().min(1, 'Los apellidos son obligatorios'),
+    username: z.string().min(1, 'El nombre de usuario es obligatorio'),
+    firstName: z.string().min(1, 'El nombre es obligatorio'),
+    lastName: z.string().min(1, 'Los apellidos son obligatorios'),
     password: z
         .string()
         .min(6, 'La contraseña debe tener al menos 6 caracteres'),
@@ -23,10 +24,7 @@ const signupSchema = z.object({
 type SignupFormData = z.infer<typeof signupSchema>;
 
 export default function SignupPage() {
-    const [providers, setProviders] = useState<Record<
-        string,
-        ClientSafeProvider
-    > | null>(null);
+    const router = useRouter();
     const [showPassword, setShowPassword] = useState(false);
     const {
         register,
@@ -36,18 +34,29 @@ export default function SignupPage() {
         resolver: zodResolver(signupSchema),
     });
 
-    const onSubmit = (data: SignupFormData) => {
-        // Handle signup logic here
-        console.log(data);
-    };
+    const onSubmit = async (data: SignupFormData) => {
+        try {
+            const response = await fetch(
+                `${process.env.NEXT_PUBLIC_API_URL}auth/register`,
+                {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(data),
+                }
+            );
+            if (!response.ok) {
+                throw new Error('Failed to fetch categories');
+            }
 
-    useEffect(() => {
-        const getProvidersData = async () => {
-            const providers = await getProviders();
-            setProviders(providers);
-        };
-        getProvidersData();
-    }, []);
+            router.push('/blog/login');
+        } catch {
+            toast.error('Error al crear la cuenta');
+        } finally {
+            toast.success('Cuenta creada correctamente');
+        }
+    };
 
     return (
         <>
@@ -84,11 +93,11 @@ export default function SignupPage() {
                                 <Input
                                     type="text"
                                     placeholder="Nombre"
-                                    {...register('nombre')}
+                                    {...register('firstName')}
                                 />
-                                {errors.nombre?.message && (
+                                {errors.firstName?.message && (
                                     <p className="text-red-500 text-sm mt-1">
-                                        {errors.nombre.message}
+                                        {errors.firstName.message}
                                     </p>
                                 )}
                             </div>
@@ -96,11 +105,23 @@ export default function SignupPage() {
                                 <Input
                                     type="text"
                                     placeholder="Apellidos"
-                                    {...register('apellidos')}
+                                    {...register('lastName')}
                                 />
-                                {errors.apellidos?.message && (
+                                {errors.lastName?.message && (
                                     <p className="text-red-500 text-sm mt-1">
-                                        {errors.apellidos.message}
+                                        {errors.lastName.message}
+                                    </p>
+                                )}
+                            </div>
+                            <div>
+                                <Input
+                                    type="text"
+                                    placeholder="Nombre de usuario"
+                                    {...register('username')}
+                                />
+                                {errors.username?.message && (
+                                    <p className="text-red-500 text-sm mt-1">
+                                        {errors.username.message}
                                     </p>
                                 )}
                             </div>
@@ -135,16 +156,6 @@ export default function SignupPage() {
                                 Crear Cuenta
                             </Button>
                         </form>
-
-                        {providers &&
-                            Object.values(providers).map(provider => (
-                                <Button
-                                    key={provider.name}
-                                    onClick={() => signIn(provider.id)}
-                                    className="w-full mb-4">
-                                    Registrarse con {provider.name}
-                                </Button>
-                            ))}
 
                         <div className="text-center mt-6">
                             <p className="text-white/60 mb-2">

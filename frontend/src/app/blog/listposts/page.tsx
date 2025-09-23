@@ -11,11 +11,13 @@ import {
     Plus,
     Eye,
     Edit,
+    Trash2,
 } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import Link from 'next/link';
 import Image from 'next/image';
 import { useSession } from 'next-auth/react';
+import { toast } from 'sonner';
 
 interface Post {
     id: number;
@@ -127,6 +129,28 @@ export default function ListPostsPage() {
         fetchPosts('', null, 1);
     };
 
+
+    const handleDelete = async (id: number) => {
+        if (!confirm('¿Estás seguro de que quieres eliminar este post?'))
+            return;
+
+        try {
+            const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}post/${id}`, {
+                method: 'DELETE',
+                headers: {
+                    Authorization: `Bearer ${session?.user?.access_token}`,
+                },
+            });
+            if (!response.ok) {
+                throw new Error('Failed to delete category');
+            }
+            setCategories(categories.filter(cat => cat.id !== id));
+            toast.success('Categoría eliminada exitosamente');
+        } catch {
+            toast.error('Error al eliminar la categoría');
+        }
+    };
+
     return (
         <>
             {/* Contenido principal */}
@@ -212,11 +236,6 @@ export default function ListPostsPage() {
                                                                 <div className="text-sm font-medium text-white">
                                                                     {post.title}
                                                                 </div>
-                                                                <div className="text-sm text-white/60 line-clamp-1">
-                                                                    {
-                                                                        post.description
-                                                                    }
-                                                                </div>
                                                             </div>
                                                         </div>
                                                     </td>
@@ -280,6 +299,17 @@ export default function ListPostsPage() {
                                                                     href={`/blog/createpost/${post.id}`}>
                                                                     <Edit className="h-4 w-4" />
                                                                 </Link>
+                                                            </Button>
+                                                            <Button
+                                                                variant="ghost"
+                                                                size="sm"
+                                                                className="text-red-400 hover:text-red-300 hover:bg-red-500/10"
+                                                                onClick={() =>
+                                                                    handleDelete(
+                                                                        post.id
+                                                                    )
+                                                                }>
+                                                                <Trash2 className="h-4 w-4" />
                                                             </Button>
                                                         </div>
                                                     </td>
