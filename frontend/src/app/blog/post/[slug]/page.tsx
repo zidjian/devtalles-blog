@@ -1,102 +1,148 @@
-"use client";
+'use client';
 
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import ShinyText from "@/components/ShinyText";
-import { ArrowLeft, Heart, MessageCircle } from "lucide-react";
-import { useParams, useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
-import { Input } from "@/components/ui/input";
-import { useForm } from "react-hook-form";
-import { PostSkeleton, CommentsSkeleton, RelatedPostsSkeleton, TableOfContentsSkeleton } from "@/components/Skeleton";
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import ShinyText from '@/components/ShinyText';
+import { ArrowLeft, Heart, MessageCircle } from 'lucide-react';
+import { useParams, useRouter } from 'next/navigation';
+import { useEffect, useState } from 'react';
+import { useForm } from 'react-hook-form';
+import {
+    PostSkeleton,
+    CommentsSkeleton,
+    RelatedPostsSkeleton,
+    TableOfContentsSkeleton,
+} from '@/components/Skeleton';
+import Image from 'next/image';
+import { useSession } from 'next-auth/react';
 
 interface Post {
     id: number;
     title: string;
     slug: string;
     description: string;
-    date: string;
-    author: string;
-    image: string;
-    categories: string[];
     content: string;
+    createdAt: string;
+    user: {
+        username: string;
+    };
+    _count: {
+        comments: number;
+        likes: number;
+    };
+    image: string;
+    categories: Categories[];
+    comments: Comments[];
+    liked: boolean;
+}
+
+interface Categories {
+    id: number;
+    name: string;
+}
+
+interface Comments {
+    data: Datum[];
+    meta: {
+        total: number;
+        totalPages: number;
+        currentPage: number;
+    };
+}
+
+export interface Datum {
+    id: number;
+    postId: number;
+    userId: number;
+    parentId: null;
+    content: string;
+    createdAt: Date;
+    updatedAt: Date;
+    user: {
+        id: number;
+        username: string;
+        profilePicture: null;
+    };
 }
 
 export default function PostPage() {
+    const { data: session } = useSession();
     const params = useParams();
     const router = useRouter();
     const slug = params.slug as string;
 
-    const [posts, setPosts] = useState<Post[]>([]);
+    const [post, setPost] = useState<Post | null>(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
     const [commentsLoading, setCommentsLoading] = useState(true);
-    const [comments, setComments] = useState<Array<{
-        id: number;
-        name: string;
-        text: string;
-        date: string;
-    }>>([]);
+    const [comments, setComments] = useState<Array<Datum>>([]);
     const [relatedPosts, setRelatedPosts] = useState<Post[]>([]);
 
-    useEffect(() => {
-        const fetchPost = async () => {
-            try {
-                const response = await fetch(`/api/posts/${slug}`);
-                if (!response.ok) {
-                    if (response.status === 404) {
-                        router.replace('/not-found');
-                        setLoading(false);
-                        return;
-                    }
-                    throw new Error('Failed to fetch post');
+    const fetchPost = async () => {
+        try {
+            const response = await fetch(
+                `${process.env.NEXT_PUBLIC_API_URL}post/${slug}`,
+                {
+                    headers: {
+                        Authorization: `Bearer ${session?.user?.access_token}`,
+                    },
                 }
-                const data = await response.json();
-                if (!data.post) {
+            );
+            if (!response.ok) {
+                if (response.status === 404) {
                     router.replace('/not-found');
                     setLoading(false);
                     return;
                 }
-                setPosts([data.post]); // Set as array for compatibility
-            } catch (err) {
-                setError(err instanceof Error ? err.message : 'An error occurred');
-            } finally {
-                setLoading(false);
+                throw new Error('Failed to fetch post');
             }
-        };
+            const data = await response.json();
+            setPost(data);
+        } catch (err) {
+            setError(err instanceof Error ? err.message : 'An error occurred');
+        } finally {
+            setLoading(false);
+        }
+    };
 
+    useEffect(() => {
         if (slug) {
             fetchPost();
         }
-    }, [slug]);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [session, slug]);
 
     // Fetch comments
-    useEffect(() => {
-        const fetchComments = async () => {
-            if (!slug) return;
+    const fetchComments = async () => {
+        if (!slug) return;
 
-            try {
-                const response = await fetch(`/api/posts/${slug}/comments`);
-                if (!response.ok) {
-                    throw new Error('Failed to fetch comments');
+        try {
+            const response = await fetch(
+                `${process.env.NEXT_PUBLIC_API_URL}comment/post/${slug}`,
+                {
+                    headers: {
+                        Authorization: `Bearer ${session?.user?.access_token}`,
+                    },
                 }
-                const data = await response.json();
-                setComments(data.comments);
-            } catch (err) {
-                console.error('Error fetching comments:', err);
-                // Set empty comments array on error
-                setComments([]);
-            } finally {
-                setCommentsLoading(false);
+            );
+            if (!response.ok) {
+                throw new Error('Failed to fetch comments');
             }
-        };
+            const data = await response.json();
+            setComments(data.data);
+        } catch (err) {
+            console.error('Error fetching comments:', err);
+            // Set empty comments array on error
+            setComments([]);
+        } finally {
+            setCommentsLoading(false);
+        }
+    };
 
+    useEffect(() => {
         fetchComments();
-    }, [slug]);
-
-    const post = posts.find((p) => p.slug === slug);
-
-    const [liked, setLiked] = useState(false);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [slug, session]);
 
     const {
         register,
@@ -105,47 +151,50 @@ export default function PostPage() {
         formState: { errors },
     } = useForm<{ name: string; text: string }>();
 
-
-    const [processedContent, setProcessedContent] = useState(post?.content || '');
+    const [processedContent, setProcessedContent] = useState(
+        post?.content || ''
+    );
     const [menuItems, setMenuItems] = useState<
         Array<{ text: string; id: string; level: number }>
     >([]);
 
     useEffect(() => {
-        if (!post || typeof window === "undefined") return;
+        if (!post || typeof window === 'undefined') return;
         const parser = new window.DOMParser();
-        const doc = parser.parseFromString(post.content, "text/html");
-        const headings = doc.querySelectorAll("h2, h3, h4");
+        const doc = parser.parseFromString(post.content, 'text/html');
+        const headings = doc.querySelectorAll('h2, h3, h4');
         headings.forEach((h, index) => {
             h.id = `heading-${index}`;
         });
         setProcessedContent(doc.body.innerHTML);
         setMenuItems(
             Array.from(headings).map((h, index) => ({
-                text: h.textContent || "",
+                text: h.textContent || '',
                 id: `heading-${index}`,
                 level: parseInt(h.tagName.charAt(1)),
             }))
         );
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [post?.content]);
 
-    useEffect(() => {
-        if (post) {
-            const fetchRelated = async () => {
-                try {
-                    const response = await fetch(`/api/posts/id/${post.id}/related-posts`);
-                    if (response.ok) {
-                        const data = await response.json();
-                        setRelatedPosts(data.relatedPosts);
-                    }
-                } catch (error) {
-                    console.error('Error fetching related posts:', error);
-                }
-            };
-            fetchRelated();
-        }
-    }, [post]);
+    // useEffect(() => {
+    //     if (post) {
+    //         const fetchRelated = async () => {
+    //             try {
+    //                 const response = await fetch(
+    //                     `/api/posts/id/${post.id}/related-posts`
+    //                 );
+    //                 if (response.ok) {
+    //                     const data = await response.json();
+    //                     setRelatedPosts(data.relatedPosts);
+    //                 }
+    //             } catch (error) {
+    //                 console.error('Error fetching related posts:', error);
+    //             }
+    //         };
+    //         fetchRelated();
+    //     }
+    // }, [post]);
 
     if (loading) {
         return (
@@ -164,43 +213,58 @@ export default function PostPage() {
     }
 
     if (!post) {
-        router.replace('/not-found');
+        // router.replace('/not-found');
         return null;
     }
 
-    const handleLike = () => {
-        setLiked(!liked);
+    const handleLike = async () => {
+        try {
+            const response = await fetch(
+                `${process.env.NEXT_PUBLIC_API_URL}post/${post.liked ? 'unlike' : 'like'}/${post.id}`,
+                {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        Authorization: `Bearer ${session?.user?.access_token}`,
+                    },
+                }
+            );
+
+            if (!response.ok) {
+                throw new Error('Failed to like post');
+            }
+
+            fetchPost();
+        } catch (error) {
+            console.error('Error liking post:', error);
+        }
     };
 
     const onCommentSubmit = async (data: { name: string; text: string }) => {
         try {
-            const response = await fetch(`/api/posts/${slug}/comments`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify(data),
-            });
+            const response = await fetch(
+                `${process.env.NEXT_PUBLIC_API_URL}comment/post/${slug}`,
+                {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        Authorization: `Bearer ${session?.user?.access_token}`,
+                    },
+                    body: JSON.stringify({
+                        content: data.text,
+                        userId: session?.user?.user.id,
+                    }),
+                }
+            );
 
             if (!response.ok) {
                 throw new Error('Failed to submit comment');
             }
 
-            const result = await response.json();
-            setComments([...comments, result.comment]);
+            fetchComments();
             reset();
         } catch (err) {
             console.error('Error submitting comment:', err);
-            // Fallback to local state update
-            setComments([
-                ...comments,
-                {
-                    id: Date.now(),
-                    name: data.name,
-                    text: data.text,
-                    date: new Date().toISOString().split("T")[0],
-                },
-            ]);
             reset();
         }
     };
@@ -215,8 +279,7 @@ export default function PostPage() {
                         <Button
                             variant="ghost"
                             className="mb-8 text-white hover:bg-white/10"
-                            asChild
-                        >
+                            asChild>
                             <a href="/blog" className="flex items-center gap-2">
                                 <ArrowLeft size={16} />
                                 Volver al blog
@@ -225,11 +288,20 @@ export default function PostPage() {
 
                         {/* Imagen del post */}
                         <div className="aspect-video relative mb-8 rounded-lg overflow-hidden">
-                            <img
-                                src={post.image}
-                                alt={post.title}
-                                className="w-full h-full object-cover"
-                            />
+                            {post.image ? (
+                                <Image
+                                    src={post.image}
+                                    alt={post.title}
+                                    fill
+                                    className="w-full h-full object-cover"
+                                />
+                            ) : (
+                                <div className="w-full h-full flex bg-accent/80 items-center justify-center">
+                                    <span className="text-sm text-white/60 line-clamp-1">
+                                        Sin imagen
+                                    </span>
+                                </div>
+                            )}
                         </div>
 
                         {/* Contenido del post */}
@@ -246,29 +318,32 @@ export default function PostPage() {
                                             className="text-3xl font-bold text-white mb-4"
                                         />
                                         <div className="flex items-center gap-4 text-white/60 text-sm">
-                                            <span>Por {post.author}</span>
+                                            <span>
+                                                Por {post.user.username}
+                                            </span>
                                             <span>
                                                 {new Date(
-                                                    post.date
+                                                    post.createdAt
                                                 ).toLocaleDateString()}
                                             </span>
                                             <div className="flex flex-wrap gap-1">
-                                                {post.categories?.map((cat, index) => (
-                                                    <span key={index} className="bg-white/20 px-2 py-1 rounded-full text-xs">
-                                                        {cat}
-                                                    </span>
-                                                ))}
+                                                {post.categories?.map(
+                                                    (cat, index) => (
+                                                        <span
+                                                            key={index}
+                                                            className="bg-white/20 px-2 py-1 rounded-full text-xs">
+                                                            {cat.name}
+                                                        </span>
+                                                    )
+                                                )}
                                             </div>
                                         </div>
-                                        <p className="text-white/80 text-lg">
-                                            {post.description}
-                                        </p>
                                     </CardHeader>
                                     <CardContent>
                                         <div
                                             className="prose prose-invert max-w-none"
                                             dangerouslySetInnerHTML={{
-                                                __html: processedContent,
+                                                __html: post.content,
                                             }}
                                         />
                                     </CardContent>
@@ -278,21 +353,26 @@ export default function PostPage() {
 
                         {/* Like button */}
                         <div className="mt-8 text-center">
-                            <Button
-                                onClick={handleLike}
-                                variant="ghost"
-                                className={`text-white hover:bg-white/10 ${
-                                    liked ? "text-red-500" : ""
-                                }`}
-                            >
-                                <Heart
-                                    className={`h-5 w-5 mr-2 ${
-                                    liked ? "fill-current" : ""
-                                }`}
-                                />
-                                {liked ? "Me gusta" : "Dar like"}
-                            </Button>
+                            <span className="text-white mr-4">
+                                Likes: {post._count.likes}
+                            </span>
+                            {session?.user ? (
+                                <Button
+                                    onClick={handleLike}
+                                    variant="ghost"
+                                    className={`text-white hover:bg-white/10 ${
+                                        post.liked ? 'text-red-500' : ''
+                                    }`}>
+                                    <Heart
+                                        className={`h-5 w-5 mr-2 ${
+                                            post.liked ? 'fill-current' : ''
+                                        }`}
+                                    />
+                                    {post.liked ? 'Me gusta' : 'Dar like'}
+                                </Button>
+                            ) : null}
                         </div>
+
                         {loading ? (
                             <Card className="bg-black/20 backdrop-blur-sm border-white/10 mt-8">
                                 <CardHeader>
@@ -314,14 +394,14 @@ export default function PostPage() {
                                     </CardHeader>
                                     <CardContent>
                                         <div className="grid grid-cols-3 gap-4">
-                                            {relatedPosts.map((relatedPost) => (
+                                            {relatedPosts.map(relatedPost => (
                                                 <div
                                                     key={relatedPost.id}
-                                                    className="group"
-                                                >
+                                                    className="group">
                                                     <div className="relative bg-gradient-to-br from-white/10 to-white/5 backdrop-blur-lg border border-white/20 rounded-2xl overflow-hidden shadow-2xl hover:shadow-purple-500/20 transition-all duration-500 hover:scale-[1.02] hover:-translate-y-2">
                                                         {/* Image Container */}
                                                         <div className="relative aspect-[4/3] overflow-hidden">
+                                                            {/* eslint-disable-next-line @next/next/no-img-element */}
                                                             <img
                                                                 src={
                                                                     relatedPost.image
@@ -336,18 +416,31 @@ export default function PostPage() {
                                                             {/* Category Badge */}
                                                             <div className="absolute top-4 left-4">
                                                                 <div className="flex flex-wrap gap-1">
-                                                                    {relatedPost.categories?.map((cat, index) => (
-                                                                        <span key={index} className="px-3 py-1 bg-white/20 backdrop-blur-md text-white text-xs font-medium rounded-full border border-white/30">
-                                                                            {cat}
-                                                                        </span>
-                                                                    ))}
+                                                                    {relatedPost.categories?.map(
+                                                                        (
+                                                                            cat,
+                                                                            index
+                                                                        ) => (
+                                                                            <span
+                                                                                key={
+                                                                                    index
+                                                                                }
+                                                                                className="px-3 py-1 bg-white/20 backdrop-blur-md text-white text-xs font-medium rounded-full border border-white/30">
+                                                                                {
+                                                                                    cat.name
+                                                                                }
+                                                                            </span>
+                                                                        )
+                                                                    )}
                                                                 </div>
                                                             </div>
                                                         </div>
                                                         {/* Content */}
                                                         <div className="p-4">
                                                             <h3 className="text-sm font-bold text-white mb-2 line-clamp-2 group-hover:text-purple-200 transition-colors duration-300">
-                                                                {relatedPost.title}
+                                                                {
+                                                                    relatedPost.title
+                                                                }
                                                             </h3>
                                                             <p className="text-white/70 text-xs mb-3 line-clamp-2 leading-relaxed">
                                                                 {
@@ -357,8 +450,7 @@ export default function PostPage() {
                                                             {/* Action Button */}
                                                             <a
                                                                 href={`/blog/post/${relatedPost.slug}`}
-                                                                className="w-full py-2 px-3 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white font-medium rounded-lg transition-all duration-300 transform hover:scale-105 hover:shadow-lg group-hover:shadow-purple-500/25 text-center block text-xs"
-                                                            >
+                                                                className="w-full py-2 px-3 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white font-medium rounded-lg transition-all duration-300 transform hover:scale-105 hover:shadow-lg group-hover:shadow-purple-500/25 text-center block text-xs">
                                                                 Leer más
                                                             </a>
                                                         </div>
@@ -387,65 +479,73 @@ export default function PostPage() {
                                     <CommentsSkeleton />
                                 ) : (
                                     <>
-                                        {/* Comment form */}
-                                        <form
-                                            onSubmit={handleSubmit(onCommentSubmit)}
-                                            className="mb-6"
-                                        >
-                                            <Input
-                                                type="text"
-                                                placeholder="Tu nombre"
-                                                {...register("name", {
-                                                    required: "El nombre es requerido",
-                                                })}
-                                                className="mb-2"
-                                            />
-                                            {errors.name && (
-                                                <p className="text-red-400 text-sm mb-2">
-                                                    {errors.name.message}
-                                                </p>
-                                            )}
-
-                                            <textarea
-                                                placeholder="Escribe un comentario..."
-                                                {...register("text", {
-                                                    required:
-                                                        "El comentario es requerido",
-                                                })}
-                                                className="w-full h-24 rounded-md border border-white/20 bg-white/5 px-3 py-2 text-sm text-white placeholder-white/50 focus:outline-none focus:ring-2 focus:ring-white/20 focus:border-white/20 resize-none"
-                                            />
-                                            {errors.text && (
-                                                <p className="text-red-400 text-sm mt-1">
-                                                    {errors.text.message}
-                                                </p>
-                                            )}
-
-                                            <Button type="submit" className="mt-2">
-                                                <MessageCircle className="h-4 w-4 mr-2" />
-                                                Comentar
-                                            </Button>
-                                        </form>
-
-                                        {/* Comments list */}
-                                        <div className="space-y-4">
-                                            {comments.map((comment) => (
-                                                <div
-                                                    key={comment.id}
-                                                    className="border-b border-white/10 pb-4"
-                                                >
-                                                    <div className="flex items-center gap-2 mb-2">
-                                                        <span className="font-semibold text-white">
-                                                            {comment.name}
-                                                        </span>
-                                                        <span className="text-sm text-white/60">
-                                                            {comment.date}
-                                                        </span>
-                                                    </div>
-                                                    <p className="text-white/80">
-                                                        {comment.text}
+                                        {session?.user ? (
+                                            <form
+                                                onSubmit={handleSubmit(
+                                                    onCommentSubmit
+                                                )}
+                                                className="mb-6">
+                                                <textarea
+                                                    placeholder="Escribe un comentario..."
+                                                    {...register('text', {
+                                                        required:
+                                                            'El comentario es requerido',
+                                                    })}
+                                                    className="w-full h-24 rounded-md border border-white/20 bg-white/5 px-3 py-2 text-sm text-white placeholder-white/50 focus:outline-none focus:ring-2 focus:ring-white/20 focus:border-white/20 resize-none"
+                                                />
+                                                {errors.text && (
+                                                    <p className="text-red-400 text-sm mt-1">
+                                                        {errors.text.message}
                                                     </p>
-                                                </div>
-                                            ))}
+                                                )}
+
+                                                <Button
+                                                    type="submit"
+                                                    className="mt-2">
+                                                    <MessageCircle className="h-4 w-4 mr-2" />
+                                                    Comentar
+                                                </Button>
+                                            </form>
+                                        ) : (
+                                            <p className="text-white/70 mb-4">
+                                                Debes iniciar sesión para
+                                                comentar.
+                                            </p>
+                                        )}
+
+                                        <div className="space-y-4">
+                                            {comments.length > 0 ? (
+                                                comments.map(comment => (
+                                                    <div
+                                                        key={comment.id}
+                                                        className="border-b border-white/10 pb-4">
+                                                        <div className="flex items-center gap-2 mb-2">
+                                                            <span className="font-semibold text-white">
+                                                                {
+                                                                    comment.user
+                                                                        .username
+                                                                }
+                                                            </span>
+                                                            <span className="text-sm text-white/60">
+                                                                {
+                                                                    comment.createdAt
+                                                                        .toString()
+                                                                        .split(
+                                                                            'T'
+                                                                        )[0]
+                                                                }
+                                                            </span>
+                                                        </div>
+                                                        <p className="text-white/80">
+                                                            {comment.content}
+                                                        </p>
+                                                    </div>
+                                                ))
+                                            ) : (
+                                                <p className="text-white/70 mb-4">
+                                                    No hay comentarios aún.
+                                                </p>
+                                            )}
                                         </div>
                                     </>
                                 )}
@@ -465,21 +565,19 @@ export default function PostPage() {
                                 ) : (
                                     <nav>
                                         <ul className="space-y-2">
-                                            {menuItems.map((item) => (
+                                            {menuItems.map(item => (
                                                 <li
                                                     key={item.id}
                                                     className={
                                                         item.level === 2
-                                                            ? "pl-0"
+                                                            ? 'pl-0'
                                                             : item.level === 3
-                                                            ? "pl-4"
-                                                            : "pl-8"
-                                                    }
-                                                >
+                                                              ? 'pl-4'
+                                                              : 'pl-8'
+                                                    }>
                                                     <a
                                                         href={`#${item.id}`}
-                                                        className="text-white/80 hover:text-white transition-colors"
-                                                    >
+                                                        className="text-white/80 hover:text-white transition-colors">
                                                         {item.text}
                                                     </a>
                                                 </li>
@@ -498,14 +596,14 @@ export default function PostPage() {
                                 </CardHeader>
                                 <CardContent>
                                     <div className="grid grid-cols-3 gap-4">
-                                        {relatedPosts.map((relatedPost) => (
+                                        {relatedPosts.map(relatedPost => (
                                             <div
                                                 key={relatedPost.id}
-                                                className="group"
-                                            >
+                                                className="group">
                                                 <div className="relative bg-gradient-to-br from-white/10 to-white/5 backdrop-blur-lg border border-white/20 rounded-2xl overflow-hidden shadow-2xl hover:shadow-purple-500/20 transition-all duration-500 hover:scale-[1.02] hover:-translate-y-2">
                                                     {/* Image Container */}
                                                     <div className="relative aspect-[4/3] overflow-hidden">
+                                                        {/* eslint-disable-next-line @next/next/no-img-element */}
                                                         <img
                                                             src={
                                                                 relatedPost.image
@@ -521,11 +619,22 @@ export default function PostPage() {
                                                         {/* Category Badge */}
                                                         <div className="absolute top-4 left-4">
                                                             <div className="flex flex-wrap gap-1">
-                                                                {relatedPost.categories?.map((cat, index) => (
-                                                                    <span key={index} className="px-3 py-1 bg-white/20 backdrop-blur-md text-white text-xs font-medium rounded-full border border-white/30">
-                                                                        {cat}
-                                                                    </span>
-                                                                ))}
+                                                                {relatedPost.categories?.map(
+                                                                    (
+                                                                        cat,
+                                                                        index
+                                                                    ) => (
+                                                                        <span
+                                                                            key={
+                                                                                index
+                                                                            }
+                                                                            className="px-3 py-1 bg-white/20 backdrop-blur-md text-white text-xs font-medium rounded-full border border-white/30">
+                                                                            {
+                                                                                cat.name
+                                                                            }
+                                                                        </span>
+                                                                    )
+                                                                )}
                                                             </div>
                                                         </div>
                                                     </div>
@@ -545,8 +654,7 @@ export default function PostPage() {
                                                         {/* Action Button */}
                                                         <a
                                                             href={`/blog/post/${relatedPost.slug}`}
-                                                            className="w-full py-2 px-3 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white font-medium rounded-lg transition-all duration-300 transform hover:scale-105 hover:shadow-lg group-hover:shadow-purple-500/25 text-center block text-xs"
-                                                        >
+                                                            className="w-full py-2 px-3 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white font-medium rounded-lg transition-all duration-300 transform hover:scale-105 hover:shadow-lg group-hover:shadow-purple-500/25 text-center block text-xs">
                                                             Leer más
                                                         </a>
                                                     </div>

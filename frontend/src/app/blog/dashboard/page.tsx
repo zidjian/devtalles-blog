@@ -1,20 +1,22 @@
-"use client";
+'use client';
 
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import ShinyText from "@/components/ShinyText";
-import { Heart, FileText, Filter } from "lucide-react";
-import { useState, useEffect } from "react";
-import { useForm } from "react-hook-form";
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import ShinyText from '@/components/ShinyText';
+import { Heart, FileText, Filter } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { useForm } from 'react-hook-form';
+import { useSession } from 'next-auth/react';
 
 export default function DashboardPage() {
+    const { data: session } = useSession();
     const now = new Date();
     const firstDay = new Date(now.getFullYear(), now.getMonth(), 1);
     const lastDay = new Date(now.getFullYear(), now.getMonth() + 1, 0);
     const defaultStart = firstDay.toISOString().split('T')[0];
     const defaultEnd = lastDay.toISOString().split('T')[0];
 
-    const { register, handleSubmit , reset } = useForm({
+    const { register, handleSubmit, reset } = useForm({
         defaultValues: { startDate: defaultStart, endDate: defaultEnd },
     });
 
@@ -25,7 +27,14 @@ export default function DashboardPage() {
         const params = new URLSearchParams();
         if (start) params.append('startDate', start);
         if (end) params.append('endDate', end);
-        const response = await fetch(`/api/statistics?${params.toString()}`);
+        const response = await fetch(
+            `${process.env.NEXT_PUBLIC_API_URL}post/statistics?${params.toString()}`,
+            {
+                headers: {
+                    Authorization: `Bearer ${session?.user?.access_token}`,
+                },
+            }
+        );
         const data = await response.json();
         setTotalPosts(data.totalPosts);
         setTotalLikes(data.totalLikes);
@@ -33,10 +42,14 @@ export default function DashboardPage() {
 
     useEffect(() => {
         fetchStats(defaultStart, defaultEnd);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, []);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [session]);
 
-    const onSubmit = (data: { startDate: string; endDate: string; action?: string }) => {
+    const onSubmit = (data: {
+        startDate: string;
+        endDate: string;
+        action?: string;
+    }) => {
         fetchStats(data.startDate, data.endDate);
     };
 
@@ -64,45 +77,43 @@ export default function DashboardPage() {
                 <CardContent>
                     <form onSubmit={handleSubmit(onSubmit)}>
                         <div className="flex flex-col sm:flex-row gap-4 items-end">
-                        <div className="flex-1">
-                            <label className="block text-white mb-2">
-                                Fecha Inicio
-                            </label>
-                            <input
-                                type="date"
-                                {...register("startDate")}
-                                className="w-full rounded-md border border-white/20 bg-white/5 px-3 py-2 text-sm text-white focus:outline-none focus:ring-2 focus:ring-white/20"
-                            />
-                        </div>
-                        <div className="flex-1">
-                            <label className="block text-white mb-2">
-                                Fecha Fin
-                            </label>
-                            <input
-                                type="date"
-                                {...register("endDate")}
-                                className="w-full rounded-md border border-white/20 bg-white/5 px-3 py-2 text-sm text-white focus:outline-none focus:ring-2 focus:ring-white/20"
-                            />
-                        </div>
-                        <Button
-                            type="button"
-                            variant="outline"
-                            onClick={() => {
-                                reset(); 
-                                fetchStats(defaultStart, defaultEnd);
-                            }}
-                            className="text-white border-white/20 hover:bg-white/10"
-                        >
-                            Limpiar
-                        </Button>
-                        <Button
-                            type="submit"
-                            variant="outline"
-                            name="action"
-                            className="text-white border-white/20 hover:bg-white/10"
-                        >
-                            Filtrar
-                        </Button>
+                            <div className="flex-1">
+                                <label className="block text-white mb-2">
+                                    Fecha Inicio
+                                </label>
+                                <input
+                                    type="date"
+                                    {...register('startDate')}
+                                    className="w-full rounded-md border border-white/20 bg-white/5 px-3 py-2 text-sm text-white focus:outline-none focus:ring-2 focus:ring-white/20"
+                                />
+                            </div>
+                            <div className="flex-1">
+                                <label className="block text-white mb-2">
+                                    Fecha Fin
+                                </label>
+                                <input
+                                    type="date"
+                                    {...register('endDate')}
+                                    className="w-full rounded-md border border-white/20 bg-white/5 px-3 py-2 text-sm text-white focus:outline-none focus:ring-2 focus:ring-white/20"
+                                />
+                            </div>
+                            <Button
+                                type="button"
+                                variant="outline"
+                                onClick={() => {
+                                    reset();
+                                    fetchStats(defaultStart, defaultEnd);
+                                }}
+                                className="text-white border-white/20 hover:bg-white/10">
+                                Limpiar
+                            </Button>
+                            <Button
+                                type="submit"
+                                variant="outline"
+                                name="action"
+                                className="text-white border-white/20 hover:bg-white/10">
+                                Filtrar
+                            </Button>
                         </div>
                     </form>
                 </CardContent>

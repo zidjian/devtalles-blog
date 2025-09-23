@@ -2,7 +2,7 @@ export const postInclude = {
     categories: {
       include: {
         category: {
-          select: { id: true, name: true, slug: true },
+          select: { id: true, name: true },
         },
       },
     },
@@ -10,8 +10,6 @@ export const postInclude = {
       select: {
         id: true,
         username: true,
-        firstName: true,
-        lastName: true,
         profilePicture: true,
       },
     },

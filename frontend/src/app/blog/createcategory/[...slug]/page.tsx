@@ -1,23 +1,25 @@
-"use client";
+'use client';
 
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import ShinyText from "@/components/ShinyText";
-import { Save } from "lucide-react";
-import { useState, useEffect } from "react";
-import { useParams, useRouter } from "next/navigation";
-import { useForm } from "react-hook-form";
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import ShinyText from '@/components/ShinyText';
+import { Save } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { useParams, useRouter } from 'next/navigation';
+import { useForm } from 'react-hook-form';
+import { useSession } from 'next-auth/react';
 
 type FormData = {
     name: string;
 };
 
 export default function CreateEditCategoryPage() {
+    const { data: session } = useSession();
     const params = useParams();
     const router = useRouter();
     const slug = params.slug as string[];
-    const isNew = slug[0] === "new";
+    const isNew = slug[0] === 'new';
     const categoryId = isNew ? null : slug[0];
 
     const [loading, setLoading] = useState(true);
@@ -35,7 +37,10 @@ export default function CreateEditCategoryPage() {
             try {
                 // If editing, load category data
                 if (!isNew && categoryId) {
-                    const response = await fetch(`/api/categories/${categoryId}`);
+                    const response = await fetch(
+                        `${process.env.NEXT_PUBLIC_API_URL}category/${categoryId}`
+                    );
+
                     if (!response.ok) {
                         if (response.status === 404) {
                             router.replace('/not-found');
@@ -44,14 +49,10 @@ export default function CreateEditCategoryPage() {
                         throw new Error('Failed to fetch category');
                     }
                     const data = await response.json();
-                    if (!data.category) {
-                        router.replace('/not-found');
-                        return;
-                    }
-                    setValue("name", data.category.name);
+                    setValue('name', data.name);
                 }
             } catch (error) {
-                console.error("Error loading data:", error);
+                console.error('Error loading data:', error);
             } finally {
                 setLoading(false);
             }
@@ -63,13 +64,16 @@ export default function CreateEditCategoryPage() {
     const onSubmit = async (data: FormData) => {
         setSubmitting(true);
         try {
-            const method = isNew ? 'POST' : 'PUT';
-            const url = isNew ? '/api/categories' : `/api/categories/${categoryId}`;
+            const method = isNew ? 'POST' : 'PATCH';
+            const url = isNew
+                ? `${process.env.NEXT_PUBLIC_API_URL}category`
+                : `${process.env.NEXT_PUBLIC_API_URL}category/${categoryId}`;
 
             const response = await fetch(url, {
                 method,
                 headers: {
                     'Content-Type': 'application/json',
+                    Authorization: `Bearer ${session?.user?.access_token}`,
                 },
                 body: JSON.stringify(data),
             });
@@ -78,18 +82,16 @@ export default function CreateEditCategoryPage() {
                 throw new Error('Failed to save category');
             }
 
-            const result = await response.json();
-
             alert(
                 isNew
-                    ? "Categoría creada exitosamente!"
-                    : "Categoría actualizada exitosamente!"
+                    ? 'Categoría creada exitosamente!'
+                    : 'Categoría actualizada exitosamente!'
             );
 
             router.push('/blog/listcategories');
         } catch (error) {
-            console.error("Error submitting form:", error);
-            alert("Error al guardar la categoría");
+            console.error('Error submitting form:', error);
+            alert('Error al guardar la categoría');
         } finally {
             setSubmitting(false);
         }
@@ -110,13 +112,15 @@ export default function CreateEditCategoryPage() {
                 {/* Header */}
                 <div className="text-center mb-12">
                     <ShinyText
-                        text={isNew ? "Crear Nueva Categoría" : "Editar Categoría"}
+                        text={
+                            isNew ? 'Crear Nueva Categoría' : 'Editar Categoría'
+                        }
                         className="text-4xl font-bold text-white mb-4"
                     />
                     <p className="text-lg text-white/80">
                         {isNew
-                            ? "Crea una nueva categoría para el blog"
-                            : "Modifica los detalles de la categoría"}
+                            ? 'Crea una nueva categoría para el blog'
+                            : 'Modifica los detalles de la categoría'}
                     </p>
                 </div>
 
@@ -130,16 +134,15 @@ export default function CreateEditCategoryPage() {
                     <CardContent>
                         <form
                             onSubmit={handleSubmit(onSubmit)}
-                            className="space-y-6"
-                        >
+                            className="space-y-6">
                             <div>
                                 <label className="block text-white mb-2">
                                     Nombre
                                 </label>
                                 <Input
                                     type="text"
-                                    {...register("name", {
-                                        required: "El nombre es requerido",
+                                    {...register('name', {
+                                        required: 'El nombre es requerido',
                                     })}
                                     placeholder="Ingresa el nombre de la categoría"
                                 />
@@ -154,21 +157,21 @@ export default function CreateEditCategoryPage() {
                                 <Button
                                     type="submit"
                                     disabled={submitting}
-                                    className="flex items-center gap-2"
-                                >
+                                    className="flex items-center gap-2">
                                     <Save className="h-4 w-4" />
                                     {submitting
-                                        ? "Guardando..."
+                                        ? 'Guardando...'
                                         : isNew
-                                        ? "Crear Categoría"
-                                        : "Actualizar Categoría"}
+                                          ? 'Crear Categoría'
+                                          : 'Actualizar Categoría'}
                                 </Button>
                                 <Button
                                     type="button"
                                     variant="ghost"
                                     className="text-white hover:bg-white/10"
-                                    onClick={() => router.push('/blog/listcategories')}
-                                >
+                                    onClick={() =>
+                                        router.push('/blog/listcategories')
+                                    }>
                                     Cancelar
                                 </Button>
                             </div>

@@ -15,15 +15,30 @@ async function bootstrap() {
     }),
   );
 
+  // habilitar CORS
+  app.enableCors({
+    origin: '*', // o el puerto donde corre tu frontend
+    credentials: true,
+  });
+
   const config = new DocumentBuilder()
     .setTitle('DevTalles Blog API')
     .setDescription('THE API FOR DEVTALES BLOG')
     .setVersion('1.0')
-    .addBearerAuth()
+    .addBearerAuth(
+      {
+        type: 'http',
+        scheme: 'bearer',
+        bearerFormat: 'JWT',
+        name: 'JWT',
+        description: 'Enter JWT token',
+        in: 'header',
+      },
+      'jwt',
+    )
     .build();
   const document = SwaggerModule.createDocument(app, config);
   SwaggerModule.setup('docs', app, document);
-
 
   await app.listen(process.env.PORT ?? 3000);
   console.log(`Server is running on port ${process.env.PORT ?? 3000}`);

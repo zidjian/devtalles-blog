@@ -2,6 +2,7 @@ import { BadRequestException, Injectable, NotFoundException } from '@nestjs/comm
 import { PrismaService } from '../../prisma/prisma.service';
 import { CreateCategoryDto } from './dto/create-category.dto';
 import { UpdateCategoryDto } from './dto/update-category.dto';
+import slugify from 'slugify';
 
 @Injectable()
 export class CategoryService {
@@ -10,11 +11,20 @@ export class CategoryService {
     async getAllCategories() {
         const categories = await this.prisma.category.findMany();
 
-        if (!categories) {
-            throw new NotFoundException('Categories not found');
-        }
-
         return categories;
+    }
+
+    async getAllCategoriesForSelect(){
+        const categories = await this.getAllCategories();
+
+        const formatedCategories = categories.map((category) => {
+            return {
+                value: category.id,
+                label: category.name,
+            };
+        });
+
+        return formatedCategories;
     }
 
     async getCategoryById(id: number) {
@@ -38,10 +48,14 @@ export class CategoryService {
     }
     
     async createCategory(createCategoryDto: CreateCategoryDto) {
-
         const { name, slug } = createCategoryDto;
 
-        const category = await this.prisma.category.create({ data: { name, slug } });
+        let categorySlug = slug || slugify(name, {
+            lower: true,
+            remove: /[*+~.()]/g,
+        });
+
+        const category = await this.prisma.category.create({ data: { name, slug: categorySlug } });
 
         if (!category) {
             throw new BadRequestException('Category not created');

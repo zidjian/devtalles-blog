@@ -2,39 +2,49 @@ import { NextResponse } from 'next/server';
 
 // Mock categories data
 const mockCategories = [
-    { id: 1, name: "React" },
-    { id: 2, name: "Next.js" },
-    { id: 3, name: "Backend" },
-    { id: 4, name: "TypeScript" },
-    { id: 5, name: "CSS" },
+    { id: 1, name: 'React' },
+    { id: 2, name: 'Next.js' },
+    { id: 3, name: 'Backend' },
+    { id: 4, name: 'TypeScript' },
+    { id: 5, name: 'CSS' },
 ];
 
+import { NextRequest } from 'next/server';
+
 export async function GET(
-    request: Request,
-    { params }: { params: { id: string } }
+    request: NextRequest,
+    context: { params: Promise<{ id: string }> }
 ) {
-    const id = parseInt(params.id);
-    const category = mockCategories.find(cat => cat.id === id);
+    const { id } = await context.params;
+    const category = mockCategories.find(cat => cat.id === parseInt(id));
 
     if (!category) {
-        return NextResponse.json({ error: 'Category not found' }, { status: 404 });
+        return NextResponse.json(
+            { error: 'Category not found' },
+            { status: 404 }
+        );
     }
 
     return NextResponse.json({ category });
 }
 
 export async function PUT(
-    request: Request,
-    { params }: { params: { id: string } }
+    request: NextRequest,
+    context: { params: Promise<{ id: string }> }
 ) {
-    const id = parseInt(params.id);
+    const { id } = await context.params;
     const body = await request.json();
     const { name } = body;
 
-    const categoryIndex = mockCategories.findIndex(cat => cat.id === id);
+    const categoryIndex = mockCategories.findIndex(
+        cat => cat.id === parseInt(id)
+    );
 
     if (categoryIndex === -1) {
-        return NextResponse.json({ error: 'Category not found' }, { status: 404 });
+        return NextResponse.json(
+            { error: 'Category not found' },
+            { status: 404 }
+        );
     }
 
     mockCategories[categoryIndex].name = name;
@@ -43,14 +53,19 @@ export async function PUT(
 }
 
 export async function DELETE(
-    request: Request,
-    { params }: { params: { id: string } }
+    request: NextRequest,
+    context: { params: Promise<{ id: string }> }
 ) {
-    const id = parseInt(params.id);
-    const categoryIndex = mockCategories.findIndex(cat => cat.id === id);
+    const { id } = await context.params;
+    const categoryIndex = mockCategories.findIndex(
+        cat => cat.id === parseInt(id)
+    );
 
     if (categoryIndex === -1) {
-        return NextResponse.json({ error: 'Category not found' }, { status: 404 });
+        return NextResponse.json(
+            { error: 'Category not found' },
+            { status: 404 }
+        );
     }
 
     const deletedCategory = mockCategories.splice(categoryIndex, 1)[0];
