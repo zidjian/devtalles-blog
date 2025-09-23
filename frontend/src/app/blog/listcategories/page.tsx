@@ -7,6 +7,7 @@ import { useState, useEffect } from 'react';
 import { Plus, Edit, Trash2 } from 'lucide-react';
 import Link from 'next/link';
 import { useSession } from 'next-auth/react';
+import { toast } from 'sonner';
 
 interface Category {
     id: number;
@@ -51,17 +52,19 @@ export default function ListCategoriesPage() {
             return;
 
         try {
-            const response = await fetch(`/api/categories/${id}`, {
+            const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}category/${id}`, {
                 method: 'DELETE',
+                headers: {
+                    Authorization: `Bearer ${session?.user?.access_token}`,
+                },
             });
             if (!response.ok) {
                 throw new Error('Failed to delete category');
             }
             setCategories(categories.filter(cat => cat.id !== id));
-            alert('Categoría eliminada exitosamente');
-        } catch (error) {
-            console.error('Error deleting category:', error);
-            alert('Error al eliminar la categoría');
+            toast.success('Categoría eliminada exitosamente');
+        } catch {
+            toast.error('Error al eliminar la categoría');
         }
     };
 

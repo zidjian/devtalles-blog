@@ -9,7 +9,7 @@ export const CallToAction = () => {
                 <div className="text-center">
                     <h2 className="text-balance text-4xl font-semibold lg:text-5xl">
                         <ShinyText
-                            text="Comienza a crear"
+                            text="Descubre posts relacionados"
                             disabled={false}
                             speed={3}
                             className="custom-class"
@@ -17,7 +17,7 @@ export const CallToAction = () => {
                     </h2>
                     <div className="mt-4">
                         <ShinyText
-                            text="Crea tu cuenta y comienza a crear tus proyectos."
+                            text="Explora posts relacionados con tus intereses y mantente al día."
                             disabled={false}
                             speed={3}
                             className="custom-class"
@@ -26,14 +26,14 @@ export const CallToAction = () => {
 
                     <div className="mt-12 flex flex-wrap justify-center gap-4">
                         <Button asChild size="lg">
-                            <Link href="/">
-                                <span>Comenzar</span>
+                            <Link href="/blog">
+                                <span>Ver Posts Relacionados</span>
                             </Link>
                         </Button>
 
                         <Button asChild size="lg" variant="outline">
-                            <Link href="/">
-                                <span>Soporte</span>
+                            <Link href="/blog">
+                                <span>Ir al Blog</span>
                             </Link>
                         </Button>
                     </div>

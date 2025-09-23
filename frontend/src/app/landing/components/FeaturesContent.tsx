@@ -12,7 +12,7 @@ export default function FeaturesContent() {
                 <div className="text-center ">
                     <h2 className="text-balance font-semibold">
                         <SplitText
-                            text="Tu voz, tu código, tu comunidad"
+                            text="Aprende, comparte, crece"
                             className="text-6xl font-semibold pb-4"
                             delay={100}
                             duration={0.6}
@@ -27,8 +27,8 @@ export default function FeaturesContent() {
                         />
                     </h2>
                     <p className="mt-4">
-                        Un espacio donde cada idea cuenta y la comunidad crece
-                        contigo.
+                        Recursos educativos para programadores que quieren
+                        mejorar sus habilidades y compartir conocimientos.
                     </p>
                 </div>
                 <div className="@min-4xl:max-w-full @min-4xl:grid-cols-3 mx-auto mt-8 grid max-w-sm gap-6 *:text-center md:mt-16">
@@ -46,13 +46,13 @@ export default function FeaturesContent() {
                             </CardDecorator>
 
                             <h3 className="mt-6 font-medium">
-                                Escribe tu historia
+                                Lee Artículos
                             </h3>
                         </CardHeader>
                         <CardContent>
                             <p className="text-sm">
-                                Publica artículos y experiencias para compartir
-                                tu voz con otros devs.
+                                Accede a guías detalladas y tutoriales sobre
+                                las últimas tecnologías en programación.
                             </p>
                         </CardContent>
                     </SpotlightCard>
@@ -70,13 +70,14 @@ export default function FeaturesContent() {
                             </CardDecorator>
 
                             <h3 className="mt-6 font-medium">
-                                Comparte tu trabajo
+                                Toma Cursos
                             </h3>
                         </CardHeader>
                         <CardContent>
                             <p className="text-sm">
-                                Comparte tus proyectos y experiencias para
-                                compartir tu voz con otros devs.
+                                Aprende con nuestros cursos prácticos y
+                                actualizados sobre frameworks y lenguajes de
+                                programación.
                             </p>
                         </CardContent>
                     </SpotlightCard>
@@ -95,13 +96,13 @@ export default function FeaturesContent() {
                             </CardDecorator>
 
                             <h3 className="mt-6 font-medium">
-                                Sigue a otros devs
+                                Únete a la Comunidad
                             </h3>
                         </CardHeader>
                         <CardContent>
                             <p className="text-sm">
-                                Sigue a otros devs para ver sus proyectos y
-                                experiencias.
+                                Conecta con otros programadores, comparte
+                                conocimientos y crece profesionalmente.
                             </p>
                         </CardContent>
                     </SpotlightCard>

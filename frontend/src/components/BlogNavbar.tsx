@@ -20,6 +20,7 @@ import { useState, useEffect } from 'react';
 
 // Navigation links for blog
 const blogNavigationLinks = [
+    { href: '/landing', label: 'Landing' },
     { href: '/blog', label: 'Blog' },
     { href: '/blog/dashboard', label: 'Dashboard', rol: ['ADMIN'] },
     { href: '/blog/listposts', label: 'Lista de Post', rol: ['ADMIN'] },
@@ -40,6 +41,10 @@ export default function BlogNavbar() {
     console.log('Session:', session);
 
     const getActive = (href: string) => {
+        if (href === '/landing') {
+            return pathname === '/landing' || pathname === '/';
+        }
+
         if (href === '/blog') {
             return pathname === '/blog' || pathname.startsWith('/blog/post');
         }

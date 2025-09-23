@@ -14,10 +14,10 @@ import Image from 'next/image';
 
 // Navigation links array to be used in both desktop and mobile menus
 const navigationLinks = [
-    { href: '#', label: 'Home', active: true },
-    { href: '#', label: 'Features' },
-    { href: '#', label: 'Pricing' },
-    { href: '#', label: 'About' },
+    { href: '#hero', label: 'Inicio', active: true },
+    { href: '#autor', label: 'Autor' },
+    { href: '#features', label: 'Comunidad' },
+    { href: '#footer', label: 'Acerca' },
 ];
 
 export default function Component() {
@@ -112,10 +112,10 @@ export default function Component() {
                 {/* Right side */}
                 <div className="flex items-center gap-2">
                     <Button asChild variant="ghost">
-                        <a href="#">Docs</a>
+                        <a href="https://cursos.devtalles.com/" target='_blank'>Cursos</a>
                     </Button>
                     <Button asChild variant={'ghost'}>
-                        <a href="#">Home</a>
+                        <a href="/blog">Blog</a>
                     </Button>
                 </div>
             </div>

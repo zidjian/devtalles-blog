@@ -9,6 +9,7 @@ import { useState, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { useForm } from 'react-hook-form';
 import { useSession } from 'next-auth/react';
+import { toast } from 'sonner';
 
 type FormData = {
     name: string;
@@ -82,16 +83,15 @@ export default function CreateEditCategoryPage() {
                 throw new Error('Failed to save category');
             }
 
-            alert(
+            toast.success(
                 isNew
                     ? 'Categoría creada exitosamente!'
                     : 'Categoría actualizada exitosamente!'
             );
 
             router.push('/blog/listcategories');
-        } catch (error) {
-            console.error('Error submitting form:', error);
-            alert('Error al guardar la categoría');
+        } catch {
+            toast.error('Error al guardar la categoría');
         } finally {
             setSubmitting(false);
         }

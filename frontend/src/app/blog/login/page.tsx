@@ -10,6 +10,7 @@ import { Input } from '@/components/ui/input';
 import ShinyText from '@/components/ShinyText';
 import { ArrowLeft, Eye, EyeOff } from 'lucide-react';
 import { useRouter } from 'next/navigation';
+import { toast } from 'sonner';
 
 const loginSchema = z.object({
     email: z.string().email('Dirección de correo electrónico inválida'),
@@ -42,7 +43,7 @@ export default function LoginPage() {
         });
 
         if (result?.error) {
-            alert('Error al iniciar sesión: ' + result.error);
+            toast.error('Error al iniciar sesión: ' + result.error);
         } else if (result && result.ok) {
             router.push('/blog/dashboard');
         }

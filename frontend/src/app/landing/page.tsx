@@ -4,7 +4,7 @@ import { HeroSection } from './components/HeroSection';
 import Navbar from './components/Navbar';
 import { ContentSection } from './components/ContentSection';
 import FeaturesContent from './components/FeaturesContent';
-import { CallToAction } from './components/CallToAction';
+import BlogPreview from './components/BlogPreview';
 import FooterSection from './components/Footer';
 
 export default function Landing() {
@@ -37,23 +37,23 @@ export default function Landing() {
             {/* Contenido principal - Con scroll normal */}
             <div className="relative z-10 min-h-screen pointer-events-none">
                 {/* HeroSection */}
-                <div className="pointer-events-auto">
+                <div id="hero" className="pointer-events-auto">
                     <HeroSection />
                 </div>
-                {/* Content Section */}
-                <div className="pointer-events-auto">
+                {/* Autor Section */}
+                <div id="autor" className="pointer-events-auto">
                     <ContentSection />
                 </div>
                 {/* Features Content */}
-                <div className="pointer-events-auto">
+                <div id="features" className="pointer-events-auto">
                     <FeaturesContent />
                 </div>
-                {/* Call to Action */}
-                <div className="pointer-events-auto">
-                    <CallToAction />
+                {/* Blog Preview */}
+                <div id="blog-preview" className="pointer-events-auto">
+                    <BlogPreview />
                 </div>
                 {/* Footer */}
-                <div className="pointer-events-auto">
+                <div id="footer" className="pointer-events-auto">
                     <FooterSection />
                 </div>
             </div>
