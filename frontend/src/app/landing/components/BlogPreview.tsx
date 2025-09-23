@@ -39,7 +39,7 @@ export default function BlogPreview() {
                 const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}post?limit=3`);
                 const data = await response.json();
                 setPosts(data.data);
-            } catch (error) {
+            } catch {
                 toast.error('Error fetching posts');
             } finally {
                 setLoading(false);

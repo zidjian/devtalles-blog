@@ -13,7 +13,6 @@ import {
     Quote,
     Undo,
     Redo,
-    Heading1,
     Heading2,
     Heading3,
 } from 'lucide-react';

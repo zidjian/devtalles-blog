@@ -85,7 +85,6 @@ export async function middleware(request: NextRequest) {
             return NextResponse.redirect(new URL(firstRoute, request.url));
         }
         if (!isRouteAllowedForRole(pathname, roles)) {
-            const firstRoute = getFirstRouteForRole(roles);
             return NextResponse.redirect(new URL('/blog', request.url));
         }
     }
