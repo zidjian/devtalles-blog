@@ -38,8 +38,6 @@ export default function BlogNavbar() {
 
     useEffect(() => setMounted(true), []);
 
-    console.log('Session:', session);
-
     const getActive = (href: string) => {
         if (href === '/landing') {
             return pathname === '/landing' || pathname === '/';

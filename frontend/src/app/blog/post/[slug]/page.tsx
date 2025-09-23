@@ -224,7 +224,7 @@ export default function PostPage() {
 
             fetchPost();
         } catch (error) {
-            console.error('Error liking post:', error);
+            toast.error("Error al dar like al post");
         }
     };
 
@@ -252,7 +252,7 @@ export default function PostPage() {
             fetchComments();
             reset();
         } catch (err) {
-            console.error('Error submitting comment:', err);
+            toast.error("Error al enviar el comentario");
             reset();
         }
     };

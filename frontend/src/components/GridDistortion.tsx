@@ -208,7 +208,6 @@ const GridDistortion: React.FC<GridDistortionProps> = ({
             uniforms.time.value += 0.05;
 
             if (!(dataTexture.image.data instanceof Float32Array)) {
-                console.error('dataTexture.image.data is not a Float32Array');
                 return;
             }
             const data: Float32Array = dataTexture.image.data;
