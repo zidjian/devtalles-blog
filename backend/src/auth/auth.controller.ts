@@ -1,4 +1,11 @@
-import { Controller, Post, Body, Get, Request } from '@nestjs/common';
+import {
+  Controller,
+  Post,
+  Body,
+  Get,
+  Request,
+  UseGuards,
+} from '@nestjs/common';
 import {
   ApiTags,
   ApiOperation,
@@ -6,6 +13,7 @@ import {
   ApiBearerAuth,
   ApiBody,
 } from '@nestjs/swagger';
+import { AuthGuard } from '@nestjs/passport';
 import { AuthService } from './auth.service';
 import {
   LoginDto,
@@ -217,5 +225,46 @@ export class AuthController {
         role: req.user.role,
       },
     };
+  }
+
+  @Get('discord')
+  @UseGuards(AuthGuard('discord'))
+  @ApiOperation({
+    summary: 'Login with Discord',
+    description: 'Redirects to Discord OAuth for authentication',
+  })
+  @ApiResponse({
+    status: 302,
+    description: 'Redirects to Discord OAuth',
+  })
+  async discordAuth() {
+    // This endpoint will redirect to Discord OAuth
+  }
+
+  @Get('discord/callback')
+  @UseGuards(AuthGuard('discord'))
+  @ApiOperation({
+    summary: 'Discord OAuth callback',
+    description:
+      'Handles the callback from Discord OAuth and returns JWT token',
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'User successfully authenticated with Discord',
+    type: AuthResponseDto,
+  })
+  @ApiResponse({
+    status: 401,
+    description: 'Discord authentication failed',
+    schema: {
+      example: {
+        statusCode: 401,
+        message: 'Discord authentication failed',
+        error: 'Unauthorized',
+      },
+    },
+  })
+  async discordCallback(@Request() req: AuthenticatedRequest) {
+    return await this.authService.loginWithDiscord(req.user);
   }
 }

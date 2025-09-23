@@ -113,8 +113,8 @@ export class AuthService {
         id: user.id,
         username: user.username,
         email: user.email,
-        firstName: user.firstName,
-        lastName: user.lastName,
+        firstName: user.firstName || '',
+        lastName: user.lastName || '',
         role: user.role,
       },
     };
@@ -161,6 +161,27 @@ export class AuthService {
 
     return {
       access_token: newToken,
+      user: {
+        id: user.id,
+        username: user.username,
+        email: user.email,
+        firstName: user.firstName || '',
+        lastName: user.lastName || '',
+        role: user.role,
+      },
+    };
+  }
+
+  async loginWithDiscord(user: any): Promise<AuthResponse> {
+    const payload: JwtPayload = {
+      email: user.email,
+      sub: user.id,
+      username: user.username,
+      role: user.role,
+    };
+
+    return {
+      access_token: this.jwtService.sign(payload),
       user: {
         id: user.id,
         username: user.username,

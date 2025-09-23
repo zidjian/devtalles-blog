@@ -8,6 +8,9 @@ interface EnvVars{
     CLOUDINARY_CLOUD_NAME: string;
     CLOUDINARY_API_KEY: string;
     CLOUDINARY_API_SECRET: string;
+    DISCORD_CLIENT_ID: string;
+    DISCORD_CLIENT_SECRET: string;
+    DISCORD_CALLBACK_URL: string;
 }
 
 const envsSchema = joi.object({
@@ -17,6 +20,9 @@ const envsSchema = joi.object({
     CLOUDINARY_CLOUD_NAME: joi.string().required(),
     CLOUDINARY_API_KEY: joi.string().required(),
     CLOUDINARY_API_SECRET: joi.string().required(),
+    DISCORD_CLIENT_ID: joi.string().required(),
+    DISCORD_CLIENT_SECRET: joi.string().required(),
+    DISCORD_CALLBACK_URL: joi.string().required(),
 }).unknown(true);
 
 const { error, value } = envsSchema.validate( process.env );
@@ -34,4 +40,7 @@ export const envs = {
     cloudinaryCloudName: envVars.CLOUDINARY_CLOUD_NAME,
     cloudinaryApiKey: envVars.CLOUDINARY_API_KEY,
     cloudinaryApiSecret: envVars.CLOUDINARY_API_SECRET,
+    discordClientId: envVars.DISCORD_CLIENT_ID,
+    discordClientSecret: envVars.DISCORD_CLIENT_SECRET,
+    discordCallbackUrl: envVars.DISCORD_CALLBACK_URL,
 }
