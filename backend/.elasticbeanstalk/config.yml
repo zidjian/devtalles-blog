@@ -1,0 +1,11 @@
+branch-defaults:
+  main:
+    environment: nestjs-env
+    group_suffix: null
+
+global:
+  application_name: devtalles
+  default_region: us-east-1
+  platform: Node.js 18 running on 64bit Amazon Linux 2
+  profile: null
+  workspace_type: Application
